@@ -6,13 +6,13 @@ async function getItem() {
 
     try {
         const location = `${latitudeInput.value}${longitudeInput.value}`;
-        const response = await fetch(`http://localhost:8080/items/datetime/${datetimeInput.value}/location/${latitudeInput.value}`);
+        const response = await fetch(`http://localhost:8080/items/datetime/${datetimeInput.value}/latitude/${latitudeInput.value}/longitude/${longitudeInput.value}`);
         if (!response.ok) {
             itemResult.textContent = 'No response was obtained';
             return;
         }
         const data = await response.json();
-        itemResult.textContent = `For the datetime ${data.datetime} and location lat: ${latitudeInput.value} and long: ${longitudeInput.value}, the parking availability is: ${data.result}`;
+        itemResult.textContent = `For the datetime ${datetimeInput.value} and location lat: ${latitudeInput.value} and long: ${longitudeInput.value}, the parking availability is: ${data.result}`;
     } catch (error) {
         console.error('Error fetching availability:', error);
         itemResult.textContent = 'Error fetching availability';
