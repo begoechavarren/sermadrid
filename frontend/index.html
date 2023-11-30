@@ -4,9 +4,15 @@
     <title>Item Lookup</title>
 </head>
 <body>
-    <h1>Item Lookup</h1>
-    <input type="text" id="itemIdInput" placeholder="Enter Item ID">
-    <button onclick="getItem()">Get Item</button>
+    <h1>Parking Availability Lookup</h1>
+    <label for="datetimeInput">Datetime:</label>
+    <input type="text" id="datetimeInput" placeholder="Enter datetime">
+    <br><br>
+    <label for="latitudeInput">Latitude:</label>
+    <input type="text" id="latitudeInput" placeholder="Enter latitude">
+    <label for="longitudeInput">Longitude:</label>
+    <input type="text" id="longitudeInput" placeholder="Enter longitude">
+    <button onclick="getItem()">Get Availability</button>
     <pre id="itemResult">Result will be displayed here</pre>
     <script src="script.js"></script>
 </body>

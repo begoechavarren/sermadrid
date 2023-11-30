@@ -1,17 +1,20 @@
 async function getItem() {
-    const itemIdInput = document.getElementById('itemIdInput');
+    const datetimeInput = document.getElementById('datetimeInput');
+    const latitudeInput = document.getElementById('latitudeInput');
+    const longitudeInput = document.getElementById('longitudeInput');
     const itemResult = document.getElementById('itemResult');
+
     try {
-        // TODO: Parameterize the URL
-        const response = await fetch(`http://localhost:8080/items/${itemIdInput.value}`);
+        const location = `${latitudeInput.value}${longitudeInput.value}`;
+        const response = await fetch(`http://localhost:8080/items/datetime/${datetimeInput.value}/location/${latitudeInput.value}`);
         if (!response.ok) {
             itemResult.textContent = 'No response was obtained';
             return;
         }
         const data = await response.json();
-        itemResult.textContent = data.item_id; // Display only the item_id
+        itemResult.textContent = `For the datetime ${data.datetime} and location lat: ${latitudeInput.value} and long: ${longitudeInput.value}, the parking availability is: ${data.result}`;
     } catch (error) {
-        console.error('Error fetching item:', error);
-        itemResult.textContent = 'Error fetching item';
+        console.error('Error fetching availability:', error);
+        itemResult.textContent = 'Error fetching availability';
     }
 }
