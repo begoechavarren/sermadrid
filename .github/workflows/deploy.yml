@@ -22,6 +22,10 @@ jobs:
       run: |
         ssh-keyscan -H ${{ secrets.DROPLET_IP }} >> ~/.ssh/known_hosts
 
+    - name: Create remote directory if it doesn't exist
+      run: |
+        ssh ${{ secrets.DROPLET_USER }}@${{ secrets.DROPLET_IP }} "mkdir -p ${{ env.APP_PATH }}"
+
     - name: Copy files to server
       run: |
         scp -r ./* ${{ secrets.DROPLET_USER }}@${{ secrets.DROPLET_IP }}:${{ env.APP_PATH }}
