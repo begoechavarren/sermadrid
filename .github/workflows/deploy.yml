@@ -33,6 +33,7 @@ jobs:
     - name: SSH and Deploy
       run: |
         ssh ${{ secrets.DROPLET_USER }}@${{ secrets.DROPLET_IP }} << 'ENDSSH'
+        export BACKEND_CORS_ORIGINS='${{ secrets.BACKEND_CORS_ORIGINS }}'
         cd ${{ env.APP_PATH }}
         docker-compose down
         docker-compose up -d --build

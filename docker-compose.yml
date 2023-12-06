@@ -5,6 +5,8 @@ services:
     build: 
       context: ./backend
       dockerfile: backend.dockerfile
+    environment:
+      BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
     volumes:
       - ./backend/app:/code/app
     ports:
