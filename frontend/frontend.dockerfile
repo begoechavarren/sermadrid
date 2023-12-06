@@ -10,6 +10,10 @@ RUN rm -rf ./*
 # Copy static assets over
 COPY index.html index.html
 COPY script.js script.js
+COPY entrypoint.sh ./entrypoint.sh
+
+# Give execution rights on the entrypoint script
+RUN chmod +x ./entrypoint.sh
 
 # Containers run nginx with global directives and daemon off
-ENTRYPOINT ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["./entrypoint.sh"]
