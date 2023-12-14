@@ -1,0 +1,25 @@
+name: Deploy infrastructure
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+
+    - name: Terraform Init
+      run: terraform init
+      working-directory: ./infrastructure
+
+    - name: Terraform Apply
+      run: terraform apply -auto-approve
+      working-directory: ./infrastructure
+      env:
+        TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
+        TF_VAR_ssh_fingerprint: ${{ secrets.SSH_FINGERPRINT }}

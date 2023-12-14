@@ -1,4 +1,4 @@
-name: Deploy to DigitalOcean
+name: Deploy app
 
 on:
   workflow_dispatch:
