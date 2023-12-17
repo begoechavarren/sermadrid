@@ -7,30 +7,33 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      DO_SPACE_NAME: '${{ vars.DO_SPACE_NAME }}'
+      AWS_S3_BUCKET_NAME: '${{ vars.AWS_S3_BUCKET_NAME }}'
+      AWS_REGION: '${{ vars.AWS_REGION }}'
 
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
 
-    - name: Install DigitalOcean CLI
+    - name: Configure AWS CLI
       run: |
-        curl -sL https://github.com/digitalocean/doctl/releases/download/v1.64.0/doctl-1.64.0-linux-amd64.tar.gz | tar -xzv
-        sudo mv doctl /usr/local/bin
+        aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+        aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+        aws configure set default.region $AWS_REGION
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: ${{ env.AWS_REGION }}
 
-    - name: Check and Create DigitalOcean Space
+    - name: Check and Create AWS S3 Bucket
       run: |
-        # Authenticate with DigitalOcean
-        doctl auth init -t $DO_TOKEN
-
-        # Check if the Space exists
-        if ! doctl spaces bucket get $DO_SPACE_NAME; then
-          # Create the Space if it doesn't exist
-          doctl spaces bucket create $DO_SPACE_NAME
+        if ! aws s3 ls "s3://$AWS_S3_BUCKET_NAME" 2>&1 | grep -q 'NoSuchBucket'; then
+          echo "Bucket does not exist. Creating bucket."
+          aws s3 mb "s3://$AWS_S3_BUCKET_NAME"
+        else
+          echo "Bucket exists."
         fi
       env:
-        DO_TOKEN: ${{ secrets.DO_TOKEN }}
-        DO_SPACE_NAME: $DO_SPACE_NAME
+        AWS_S3_BUCKET_NAME: ${{ env.AWS_S3_BUCKET_NAME }}
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
@@ -43,8 +46,9 @@ jobs:
       run: terraform apply -auto-approve
       working-directory: ./infrastructure
       env:
-        TF_VAR_do_space_name: $DO_SPACE_NAME
         TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
         TF_VAR_ssh_fingerprint: ${{ secrets.SSH_FINGERPRINT }}
-        TF_VAR_do_spaces_access_key: ${{ secrets.DO_SPACES_ACCESS_KEY }}
-        TF_VAR_do_spaces_secret_key: ${{ secrets.DO_SPACES_SECRET_KEY }}
+        TF_VAR_AWS_S3_BUCKET_NAME: ${{ env.AWS_S3_BUCKET_NAME }}
+        TF_VAR_AWS_REGION: ${{ env.AWS_REGION }}
+        TF_VAR_AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        TF_VAR_AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
