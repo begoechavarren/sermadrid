@@ -14,26 +14,21 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v2
 
-    - name: Configure AWS CLI
+    - name: Check and Create AWS S3 Bucket
       run: |
         aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
         aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-        aws configure set default.region $AWS_REGION
+        if aws s3 ls "s3://$AWS_S3_BUCKET_NAME" 2>&1 | grep -q 'NoSuchBucket'; then
+            echo "Bucket does not exist. Creating bucket."
+            aws s3 mb "s3://$AWS_S3_BUCKET_NAME" --region "$AWS_REGION"
+          else
+            echo "Bucket exists."
+          fi
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: ${{ env.AWS_REGION }}
-
-    - name: Check and Create AWS S3 Bucket
-      run: |
-        if ! aws s3 ls "s3://$AWS_S3_BUCKET_NAME" 2>&1 | grep -q 'NoSuchBucket'; then
-          echo "Bucket does not exist. Creating bucket."
-          aws s3 mb "s3://$AWS_S3_BUCKET_NAME"
-        else
-          echo "Bucket exists."
-        fi
-      env:
         AWS_S3_BUCKET_NAME: ${{ env.AWS_S3_BUCKET_NAME }}
+        AWS_REGION: ${{ env.AWS_REGION }}
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
