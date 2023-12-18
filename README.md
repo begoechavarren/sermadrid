@@ -30,3 +30,10 @@ http://localhost:80
     - `AWS_S3_BUCKET_NAME`: Name to give to the AWS S3 bucket
     - `AWS_REGION`: Region to use for the AWS S3 bucket
 8. Run Github actions `deploy-infrastructure.yml` workflow to create the project's infrastructure
+
+### App
+
+1. Retrieve the Digital Ocean droplet IP from the [Digital Ocean Control Panel](https://cloud.digitalocean.com/)
+2. Create the following Github Actions secret variables in the Github repository:
+    - `DO_DROPLET_IP`: Digital Ocean droplet IP
+    - `DO_DROPLET_USER`: Digital Ocean droplet username (default username is *root*)

@@ -6,7 +6,7 @@ async function getItem() {
 
     try {
         const location = `${latitudeInput.value}${longitudeInput.value}`;
-        const response = await fetch(`http://${DROPLET_IP}:8080/items/datetime/${datetimeInput.value}/latitude/${latitudeInput.value}/longitude/${longitudeInput.value}`);
+        const response = await fetch(`http://${DO_DROPLET_IP}:8080/items/datetime/${datetimeInput.value}/latitude/${latitudeInput.value}/longitude/${longitudeInput.value}`);
         if (!response.ok) {
             itemResult.textContent = 'No response was obtained';
             return;

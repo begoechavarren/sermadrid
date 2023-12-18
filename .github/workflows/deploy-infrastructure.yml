@@ -12,7 +12,7 @@ jobs:
       AWS_REGION: '${{ vars.AWS_REGION }}'
 
     steps:
-    - name: Checkout Repository
+    - name: Checkout repository
       uses: actions/checkout@v2
 
     - name: Check and Create AWS S3 Bucket

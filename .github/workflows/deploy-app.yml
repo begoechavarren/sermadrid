@@ -11,7 +11,7 @@ jobs:
       BACKEND_CORS_ORIGINS: '${{ vars.BACKEND_CORS_ORIGINS }}'
 
     steps:
-    - name: Checkout code
+    - name: Checkout repository
       uses: actions/checkout@v3
 
     - name: Set up SSH
@@ -19,26 +19,56 @@ jobs:
       with:
         ssh-private-key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
 
+    - name: Configure Digital Ocean Droplet
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.DO_DROPLET_IP }}
+        username: ${{ secrets.DO_DROPLET_USER }}
+        key: ${{ secrets.DO_DROPLET_SSH_KEY }}
+        script: |
+          sudo apt update
+          sudo apt upgrade -y
+    
+          # Install Docker
+          if ! command -v docker &> /dev/null
+          then
+              echo "Docker is not installed. Installing Docker."
+              curl -fsSL https://get.docker.com -o get-docker.sh
+              sudo sh get-docker.sh
+          else
+              echo "Docker is already installed."
+          fi
+    
+          # Install Docker Compose
+          if ! command -v docker-compose &> /dev/null
+          then
+              echo "Docker Compose is not installed. Installing Docker Compose."
+              sudo curl -L "https://github.com/docker/compose/releases/download/v2.6.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+              sudo chmod +x /usr/local/bin/docker-compose
+          else
+              echo "Docker Compose is already installed."
+          fi
+
     - name: Add SSH key to known hosts
       run: |
-        ssh-keyscan -H ${{ secrets.DROPLET_IP }} >> ~/.ssh/known_hosts
+        ssh-keyscan -H ${{ secrets.DO_DROPLET_IP }} >> ~/.ssh/known_hosts
 
     - name: Create remote directory if it doesn't exist
       run: |
-        ssh ${{ secrets.DROPLET_USER }}@${{ secrets.DROPLET_IP }} "mkdir -p ${{ env.APP_PATH }}"
+        ssh ${{ secrets.DO_DROPLET_USER }}@${{ secrets.DO_DROPLET_IP }} "mkdir -p ${{ env.APP_PATH }}"
 
     - name: Copy files to server
       run: |
-        scp -r ./* ${{ secrets.DROPLET_USER }}@${{ secrets.DROPLET_IP }}:${{ env.APP_PATH }}
+        scp -r ./* ${{ secrets.DO_DROPLET_USER }}@${{ secrets.DO_DROPLET_IP }}:${{ env.APP_PATH }}
 
     - name: Export environment variables
       run: |
-        ssh ${{ secrets.DROPLET_USER }}@${{ secrets.DROPLET_IP }} "echo BACKEND_CORS_ORIGINS='$BACKEND_CORS_ORIGINS' > ${{ env.APP_PATH }}/.env"
-        ssh ${{ secrets.DROPLET_USER }}@${{ secrets.DROPLET_IP }} "echo DROPLET_IP='${{ secrets.DROPLET_IP }}' >> ${{ env.APP_PATH }}/.env"
+        ssh ${{ secrets.DO_DROPLET_USER }}@${{ secrets.DO_DROPLET_IP }} "echo BACKEND_CORS_ORIGINS='$BACKEND_CORS_ORIGINS' > ${{ env.APP_PATH }}/.env"
+        ssh ${{ secrets.DO_DROPLET_USER }}@${{ secrets.DO_DROPLET_IP }} "echo DO_DROPLET_IP='${{ secrets.DO_DROPLET_IP }}' >> ${{ env.APP_PATH }}/.env"
 
     - name: SSH and Deploy
       run: |
-        ssh ${{ secrets.DROPLET_USER }}@${{ secrets.DROPLET_IP }} << 'ENDSSH'
+        ssh ${{ secrets.DO_DROPLET_USER }}@${{ secrets.DO_DROPLET_IP }} << 'ENDSSH'
         docker-compose down
         cd ${{ env.APP_PATH }}
         docker-compose up -d --build
