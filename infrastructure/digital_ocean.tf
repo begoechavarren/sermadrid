@@ -7,7 +7,7 @@ resource "digitalocean_droplet" "droplet" {
   name     = "ubuntu-s-1vcpu-512mb-10gb-ams3-01"
   region   = local.do_region
   size     = "s-1vcpu-512mb-10gb"
-  ssh_keys = [var.do_ssh_key_fingerprint]
+  ssh_keys = [var.do_ssh_key_id]
 }
 
 resource "digitalocean_project" "project" {

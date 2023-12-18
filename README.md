@@ -22,7 +22,7 @@ http://localhost:80
 5. Create an AWS [access key](https://repost.aws/knowledge-center/create-access-key)
 6. Create the following Github Actions secret variables in the Github repository:
     - `DO_API_KEY_TOKEN`: Digital Ocean API key token
-    - `DO_SSH_KEY_FINGERPRINT`: Digital Ocean SSH key fingerprint
+    - `DO_SSH_KEY_ID`: Digital Ocean SSH key ID
     - `DO_SSH_PRIVATE_KEY`: Digital Ocean SSH private key
     - `AWS_ACCESS_KEY_ID`: AWS access key ID
     - `AWS_SECRET_ACCESS_KEY`: AWS secret access key

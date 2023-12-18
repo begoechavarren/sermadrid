@@ -60,11 +60,11 @@ jobs:
       working-directory: ./infrastructure
       env:
         TF_VAR_do_api_key_token: ${{ secrets.DO_API_KEY_TOKEN }}
-        TF_VAR_do_ssh_key_fingerprint: ${{ secrets.DO_SSH_KEY_FINGERPRINT }}
+        TF_VAR_do_ssh_key_id: ${{ secrets.DO_SSH_KEY_ID }}
 
     - name: Terraform Apply
       run: terraform apply -auto-approve
       working-directory: ./infrastructure
       env:
         TF_VAR_do_api_key_token: ${{ secrets.DO_API_KEY_TOKEN }}
-        TF_VAR_do_ssh_key_fingerprint: ${{ secrets.DO_SSH_KEY_FINGERPRINT }}
+        TF_VAR_do_ssh_key_id: ${{ secrets.DO_SSH_KEY_ID }}
