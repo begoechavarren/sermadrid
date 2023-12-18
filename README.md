@@ -1,17 +1,39 @@
-# SERMadrid
+<div align="center">
+  <h1>🚘 sermadrid</h1>
+  <p><em>E2E app to search for public parking availability in Madrid SER zone</em></p>
+</div>
 
-```
-$ docker-compose build --no-cache
-$ docker-compose up -d
-```
+> [!WARNING]
+> `sermadrid` is currently under active development.
 
-http://localhost:80
 
+## ⚙️ Local deployment
+
+1. Create `.env` file in the repository root with the following variables
+
+    ```
+    BACKEND_CORS_ORIGINS=["http://localhost","http://0.0.0.0"]
+    DROPLET_IP=localhost
+    ```
+2. Run the following commands to spin up the containers
+    
+    ```
+    $ docker-compose build --no-cache
+    $ docker-compose up -d
+    ```
+
+The app will then be available in http://localhost:80. Some example variables to run it are:
 - datetime: `2024-01-01T12:30:00`
 - latitude: `40.416775`
 - longitude: `-3.703790`
 
-## ⚙️ Installation & Setup
+Afterwards, to stop all the running containers, run:
+```
+$ docker stop $(docker ps -a -q) 
+```
+
+
+## ⚙️ Remote deployment
 
 ### Infrastructure
 
@@ -38,4 +60,4 @@ http://localhost:80
     - `DO_DROPLET_IP`: Digital Ocean droplet IP
     - `DO_DROPLET_USER`: Digital Ocean droplet username (default username is *root*)
 3. Create the following Github Actions variables in the Github repository:
-    - `BACKEND_CORS_ORIGINS`: A comma-separated list of origins allowed to access the backend to configure the CORS policy (in this case just the frontend)
+    - `BACKEND_CORS_ORIGINS`: A comma-separated list of origins allowed to access the backend to configure the CORS policy (in this case just the frontend: *[http://{DO_DROPLET_IP}]*)
