@@ -3,7 +3,7 @@ variable "do_api_key_token" {
   description = "Digital Ocean API key token."
 }
 
-variable "do_ssh_key_id" {
+variable "do_ssh_key_fingerprint" {
   type        = string
-  description = "Digital Ocean SSH key ID."
+  description = "Digital Ocean SSH key fingerprint."
 }
