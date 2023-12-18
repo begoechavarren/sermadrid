@@ -1,5 +1,5 @@
 provider "digitalocean" {
-  token = var.do_token
+  token = var.do_api_key_token
 }
 
 resource "digitalocean_droplet" "droplet" {
@@ -7,7 +7,7 @@ resource "digitalocean_droplet" "droplet" {
   name     = "ubuntu-s-1vcpu-512mb-10gb-ams3-01"
   region   = local.do_region
   size     = "s-1vcpu-512mb-10gb"
-  ssh_keys = [var.ssh_fingerprint]
+  ssh_keys = [var.do_ssh_key_fingerprint]
 }
 
 resource "digitalocean_project" "project" {
