@@ -1,3 +1,4 @@
+# TODO: Parameterize
 locals {
   do_region = "ams3"
 }

@@ -37,3 +37,5 @@ http://localhost:80
 2. Create the following Github Actions secret variables in the Github repository:
     - `DO_DROPLET_IP`: Digital Ocean droplet IP
     - `DO_DROPLET_USER`: Digital Ocean droplet username (default username is *root*)
+3. Create the following Github Actions variables in the Github repository:
+    - `BACKEND_CORS_ORIGINS`: A comma-separated list of origins allowed to access the backend to configure the CORS policy (in this case just the frontend)

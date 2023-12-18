@@ -19,12 +19,12 @@ jobs:
       with:
         ssh-private-key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
 
-    - name: Configure Digital Ocean Droplet
+    - name: Install Docker and Docker Compose
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.DO_DROPLET_IP }}
         username: ${{ secrets.DO_DROPLET_USER }}
-        key: ${{ secrets.DO_DROPLET_SSH_KEY }}
+        key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
         script: |
           sudo apt update
           sudo apt upgrade -y

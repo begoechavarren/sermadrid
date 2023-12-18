@@ -19,7 +19,7 @@ services:
       context: ./frontend
       dockerfile: frontend.dockerfile
     environment:
-      DROPLET_IP: ${DROPLET_IP}
+      DO_DROPLET_IP: ${DO_DROPLET_IP}
     ports:
       - "80:80"
     depends_on:
