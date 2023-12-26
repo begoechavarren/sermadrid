@@ -12,6 +12,27 @@ resource "digitalocean_droplet" "droplet" {
 }
 
 resource "digitalocean_project" "project" {
-  name      = "sermadrid"
-  resources = [digitalocean_droplet.droplet.urn]
+  name = "sermadrid"
+  resources = [
+    digitalocean_droplet.droplet.urn,
+    digitalocean_domain.default.urn,
+  ]
+}
+
+resource "digitalocean_domain" "default" {
+  name = var.domain_name
+}
+
+resource "digitalocean_record" "www_record" {
+  domain = digitalocean_domain.default.id
+  type   = "A"
+  name   = "www"
+  value  = digitalocean_droplet.droplet.ipv4_address
+}
+
+resource "digitalocean_record" "apex_record" {
+  domain = digitalocean_domain.default.id
+  type   = "A"
+  name   = "@"
+  value  = digitalocean_droplet.droplet.ipv4_address
 }

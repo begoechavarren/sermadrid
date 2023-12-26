@@ -15,7 +15,7 @@
     BACKEND_CORS_ORIGINS=["http://localhost","http://0.0.0.0"]
     DROPLET_IP=localhost
     ```
-2. Run the following commands to spin up the containers
+2. Run the following commands to spin up the Docker containers
     
     ```
     $ docker-compose build --no-cache
@@ -42,16 +42,18 @@ $ docker stop $(docker ps -a -q)
 3. Create a Digital Ocean [SSH key](https://docs.digitalocean.com/reference/doctl/reference/compute/ssh-key/create/)
 4. Create an AWS account
 5. Create an AWS [access key](https://repost.aws/knowledge-center/create-access-key)
-6. Create the following Github Actions secret variables in the Github repository:
+6. Obtain a valid website domain via a domain registrar and [point to Digital Ocean name servers](https://docs.digitalocean.com/products/networking/dns/getting-started/dns-registrars/) from it
+7. Create the following Github Actions secret variables in the Github repository:
     - `DO_API_KEY_TOKEN`: Digital Ocean API key token
     - `DO_SSH_KEY_ID`: Digital Ocean SSH key ID
     - `DO_SSH_PRIVATE_KEY`: Digital Ocean SSH private key
     - `AWS_ACCESS_KEY_ID`: AWS access key ID
     - `AWS_SECRET_ACCESS_KEY`: AWS secret access key
-7. Create the following Github Actions variables in the Github repository:
+8. Create the following Github Actions variables in the Github repository:
     - `AWS_S3_BUCKET_NAME`: Name to give to the AWS S3 bucket
     - `AWS_REGION`: Region to use for the AWS S3 bucket
-8. Run Github actions `deploy-infrastructure.yml` workflow to create the project's infrastructure
+    - `DOMAIN_NAME`: Registered website domain name
+9. Run Github actions `deploy-infrastructure.yml` workflow to create the project's infrastructure
 
 ### App
 
@@ -61,3 +63,4 @@ $ docker stop $(docker ps -a -q)
     - `DO_DROPLET_USER`: Digital Ocean droplet username (default username is *root*)
 3. Create the following Github Actions variables in the Github repository:
     - `BACKEND_CORS_ORIGINS`: A comma-separated list of origins allowed to access the backend to configure the CORS policy (in this case just the frontend: *[http://{DO_DROPLET_IP}]*)
+8. Run Github actions `deploy-app.yml` workflow to deploy the app

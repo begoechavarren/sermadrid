@@ -7,3 +7,8 @@ variable "do_ssh_key_fingerprint" {
   type        = string
   description = "Digital Ocean SSH key fingerprint."
 }
+
+variable "domain_name" {
+  type        = string
+  description = "Registered website domain name."
+}
