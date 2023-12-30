@@ -1,6 +1,7 @@
 <div align="center">
   <h1>🚘 sermadrid</h1>
   <p><em>E2E app to search for public parking availability in Madrid SER zone</em></p>
+  <p><a href="http://sermadrid.org">sermadrid.org</a></p>
 </div>
 
 > [!WARNING]
@@ -42,7 +43,7 @@ $ docker stop $(docker ps -a -q)
 3. Create a Digital Ocean [SSH key](https://docs.digitalocean.com/reference/doctl/reference/compute/ssh-key/create/)
 4. Create an AWS account
 5. Create an AWS [access key](https://repost.aws/knowledge-center/create-access-key)
-6. Obtain a valid website domain via a domain registrar and [point to Digital Ocean name servers](https://docs.digitalocean.com/products/networking/dns/getting-started/dns-registrars/) from it
+6. Register a valid website domain via a domain registrar and [point to Digital Ocean name servers](https://docs.digitalocean.com/products/networking/dns/getting-started/dns-registrars/) from it
 7. Create the following Github Actions secret variables in the Github repository:
     - `DO_API_KEY_TOKEN`: Digital Ocean API key token
     - `DO_SSH_KEY_ID`: Digital Ocean SSH key ID
@@ -62,5 +63,5 @@ $ docker stop $(docker ps -a -q)
     - `DO_DROPLET_IP`: Digital Ocean droplet IP
     - `DO_DROPLET_USER`: Digital Ocean droplet username (default username is *root*)
 3. Create the following Github Actions variables in the Github repository:
-    - `BACKEND_CORS_ORIGINS`: A comma-separated list of origins allowed to access the backend to configure the CORS policy (in this case just the frontend: *[http://{DO_DROPLET_IP}]*)
+    - `BACKEND_CORS_ORIGINS`: A comma-separated list of origins allowed to access the backend to configure the CORS policy (in this case just the frontend: *["http://{DO_DROPLET_IP}", "http://{DOMAIN_NAME}", "http://www.{DOMAIN_NAME}"]*)
 8. Run Github actions `deploy-app.yml` workflow to deploy the app

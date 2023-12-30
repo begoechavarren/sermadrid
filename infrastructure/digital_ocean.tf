@@ -36,3 +36,29 @@ resource "digitalocean_record" "apex_record" {
   name   = "@"
   value  = digitalocean_droplet.droplet.ipv4_address
 }
+
+resource "digitalocean_firewall" "web_firewall" {
+  name = "sermadrid-firewall"
+
+  droplet_ids = [
+    digitalocean_droplet.droplet.id,
+  ]
+
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "80"
+    source_addresses = ["0.0.0.0/0", "::/0"]
+  }
+
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "8080"
+    source_addresses = [digitalocean_droplet.droplet.ipv4_address]
+  }
+
+  outbound_rule {
+    protocol              = "tcp"
+    port_range            = "1-65535"
+    destination_addresses = ["0.0.0.0/0", "::/0"]
+  }
+}
