@@ -64,7 +64,6 @@ jobs:
     - name: Export environment variables
       run: |
         ssh ${{ secrets.DO_DROPLET_USER }}@${{ secrets.DO_DROPLET_IP }} "echo BACKEND_CORS_ORIGINS='$BACKEND_CORS_ORIGINS' > ${{ env.APP_PATH }}/.env"
-        ssh ${{ secrets.DO_DROPLET_USER }}@${{ secrets.DO_DROPLET_IP }} "echo DO_DROPLET_IP='${{ secrets.DO_DROPLET_IP }}' >> ${{ env.APP_PATH }}/.env"
 
     - name: SSH and Deploy
       run: |

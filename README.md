@@ -10,11 +10,10 @@
 
 ## ⚙️ Local deployment
 
-1. Create `.env` file in the repository root with the following variables
+1. Create `.env` file in the repository root with the following variable
 
     ```
     BACKEND_CORS_ORIGINS=["http://localhost","http://0.0.0.0"]
-    DROPLET_IP=localhost
     ```
 2. Run the following commands to spin up the Docker containers
     
