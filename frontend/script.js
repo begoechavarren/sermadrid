@@ -6,7 +6,7 @@ async function getItem() {
 
     try {
         const location = `${latitudeInput.value}${longitudeInput.value}`;
-        const response = await fetch(`/items/datetime/${datetimeInput.value}/latitude/${latitudeInput.value}/longitude/${longitudeInput.value}`);
+        const response = await fetch(`/api/v1/items/datetime/${datetimeInput.value}/latitude/${latitudeInput.value}/longitude/${longitudeInput.value}`);
         if (!response.ok) {
             itemResult.textContent = 'No response was obtained';
             return;
