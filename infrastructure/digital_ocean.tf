@@ -56,6 +56,12 @@ resource "digitalocean_firewall" "web_firewall" {
     source_addresses = [digitalocean_droplet.droplet.ipv4_address]
   }
 
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "22"
+    source_addresses = ["0.0.0.0/0", "::/0"]
+  }
+
   outbound_rule {
     protocol              = "tcp"
     port_range            = "1-65535"
