@@ -1,0 +1,37 @@
+# HTTP server to handle redirects to HTTPS for both www and non-www
+server {
+    listen 80;
+    server_name ${DOMAIN_NAME} www.${DOMAIN_NAME};
+
+    # Redirect all HTTP traffic to HTTPS with www
+    return 301 https://www.${DOMAIN_NAME}$request_uri;
+}
+
+
+# HTTPS server configuration for www
+server {
+    listen 443 ssl;
+    server_name www.${DOMAIN_NAME};
+
+    # SSL configuration
+    ssl_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN_NAME}/privkey.pem;
+
+    # Serving static files for the frontend
+    location / {
+        root /usr/share/nginx/html;
+        try_files $uri $uri/ /index.html =404;
+    }
+
+    # Proxying requests to the backend
+    location /api {
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-NginX-Proxy true;
+        proxy_pass http://backend:80/api;
+        proxy_ssl_session_reuse off;
+        proxy_set_header Host $http_host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_redirect off;
+    }
+}
