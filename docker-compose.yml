@@ -18,6 +18,8 @@ services:
     build:
       context: ./frontend
       dockerfile: frontend.dockerfile
+    volumes:
+      - ./certs:/etc/letsencrypt
     ports:
       - "80:80"
       - "443:443"
