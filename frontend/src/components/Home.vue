@@ -1,12 +1,11 @@
 <template>
   <div class="home">
-    <h1>{{ msg }}</h1>
+    <h1>sermadrid</h1>
     <p>Select the location and time where you would like to park in the Madrid SER zone</p>
     <div id="map" class="map-container"></div>
     <form @submit.prevent="getItem" class="availability-form">
       <div class="form-group">
-        <label for="datetimeInput">Datetime:</label>
-        <input type="text" id="datetimeInput" v-model="datetime" placeholder="Enter datetime">
+        <flat-pickr v-model="datetime" :config="config" class="form-control" placeholder="Select date and time"></flat-pickr>
       </div>
       <button type="submit" class="availability-button">Get Availability</button>
     </form>
@@ -16,20 +15,28 @@
 
 <script>
 import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+import FlatPickr from 'vue-flatpickr-component';
+import 'flatpickr/dist/flatpickr.css';
 
 export default {
   name: 'HomeComponent',
-  props: {
-    msg: String
+  components: {
+    FlatPickr
   },
   data() {
     return {
       datetime: '',
-      latitude: '',
-      longitude: '',
       itemResult: null,
       map: null,
-      marker: null
+      marker: null,
+      config: {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        defaultDate: new Date(),
+        minDate: "today",
+        time_24hr: true
+      }
     };
   },
   mounted() {
@@ -87,6 +94,11 @@ export default {
 
 .availability-form .form-group {
   display: flex;
+  flex-direction: column
+}
+
+.availability-form .form-group {
+  display: flex;
   flex-direction: column;
   margin-bottom: 15px;
 }
@@ -95,9 +107,9 @@ export default {
   margin-bottom: 5px;
 }
 
-.availability-form .form-group input {
-  flex: 1;
+.availability-form .form-control {
   padding: 8px;
+  margin-bottom: 10px;
 }
 
 .availability-button {
@@ -115,3 +127,4 @@ export default {
   background-color: #367d62;
 }
 </style>
+
