@@ -4,9 +4,13 @@ FROM node:lts-alpine as build-stage
 
 WORKDIR /app
 
+ARG MAPBOX_TOKEN
+
 COPY package*.json ./
 
 RUN npm install
+
+RUN echo "VUE_APP_MAPBOX_TOKEN=${MAPBOX_TOKEN}" > .env
 
 COPY . .
 

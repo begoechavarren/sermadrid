@@ -1,29 +1,22 @@
 <template>
   <div class="home">
     <h1>{{ msg }}</h1>
-    <p>Select the location and time where you would<br>like to park in the Madrid SER zone</p>
-    <!-- Form for datetime, latitude, and longitude inputs -->
+    <p>Select the location and time where you would like to park in the Madrid SER zone</p>
+    <div id="map" class="map-container"></div>
     <form @submit.prevent="getItem" class="availability-form">
       <div class="form-group">
         <label for="datetimeInput">Datetime:</label>
         <input type="text" id="datetimeInput" v-model="datetime" placeholder="Enter datetime">
       </div>
-      <div class="form-group">
-        <label for="latitudeInput">Latitude:</label>
-        <input type="text" id="latitudeInput" v-model="latitude" placeholder="Enter latitude">
-      </div>
-      <div class="form-group">
-        <label for="longitudeInput">Longitude:</label>
-        <input type="text" id="longitudeInput" v-model="longitude" placeholder="Enter longitude">
-      </div>
-      <button type="submit">Get Availability</button>
+      <button type="submit" class="availability-button">Get Availability</button>
     </form>
-    <!-- Display the result -->
     <pre v-if="itemResult">{{ itemResult }}</pre>
   </div>
 </template>
 
 <script>
+import mapboxgl from 'mapbox-gl';
+
 export default {
   name: 'HomeComponent',
   props: {
@@ -34,31 +27,59 @@ export default {
       datetime: '',
       latitude: '',
       longitude: '',
-      itemResult: null // This will hold the result from the API call
+      itemResult: null,
+      map: null,
+      marker: null
     };
+  },
+  mounted() {
+    mapboxgl.accessToken = process.env.VUE_APP_MAPBOX_TOKEN;
+    this.map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: [-3.7037902, 40.4167754],
+      zoom: 12
+    });
+
+    this.map.addControl(new mapboxgl.NavigationControl());
+
+    this.map.on('load', () => {
+      this.marker = new mapboxgl.Marker();
+      this.map.on('click', (e) => {
+        this.latitude = e.lngLat.lat;
+        this.longitude = e.lngLat.lng;
+        if (this.marker) {
+          this.marker.remove(); // Remove the previous marker if there is one
+        }
+        this.marker = new mapboxgl.Marker()
+          .setLngLat([this.longitude, this.latitude])
+          .addTo(this.map);
+      });
+    });
   },
   methods: {
     async getItem() {
       try {
-        // Fetching the parking availability data
         const response = await fetch(`/api/v1/items/datetime/${this.datetime}/latitude/${this.latitude}/longitude/${this.longitude}`);
         if (!response.ok) {
-          this.itemResult = 'No response was obtained';
-          return;
+          throw new Error('Network response was not ok.');
         }
         const data = await response.json();
-        this.itemResult = `For the datetime ${this.datetime} and location lat: ${this.latitude} and long: ${this.longitude}, the parking availability is: ${data.result}`;
+        this.itemResult = `For the datetime ${this.datetime} and location lat: ${this.latitude}, long: ${this.longitude}, the parking availability is: ${data.result}`;
       } catch (error) {
-        console.error('Error fetching availability:', error);
-        this.itemResult = 'Error fetching availability';
+        this.itemResult = 'Error fetching availability: ' + error.message;
       }
     }
   }
-}
+};
 </script>
 
-<!-- Styles for your component -->
 <style scoped>
+.map-container {
+  height: 300px;
+  margin-bottom: 20px;
+}
+
 .availability-form {
   max-width: 300px;
   margin: auto;
@@ -66,20 +87,20 @@ export default {
 
 .availability-form .form-group {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   margin-bottom: 15px;
 }
 
 .availability-form .form-group label {
-  flex-basis: 30%;
-  margin-right: 1px;
+  margin-bottom: 5px;
 }
 
 .availability-form .form-group input {
   flex: 1;
+  padding: 8px;
 }
 
-button {
+.availability-button {
   width: 100%;
   padding: 10px;
   margin-top: 10px;
@@ -90,7 +111,7 @@ button {
   border-radius: 5px;
 }
 
-button:hover {
+.availability-button:hover {
   background-color: #367d62;
 }
 </style>

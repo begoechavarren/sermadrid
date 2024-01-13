@@ -18,6 +18,8 @@ services:
     build:
       context: ./frontend
       dockerfile: frontend.dockerfile
+      args:
+        MAPBOX_TOKEN: ${MAPBOX_TOKEN}
     volumes:
       - ./certs:/etc/letsencrypt
     ports:
