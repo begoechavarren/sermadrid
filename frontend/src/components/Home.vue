@@ -9,7 +9,9 @@
       </div>
       <button type="submit" class="availability-button">Get Availability</button>
     </form>
-    <pre v-if="itemResult">{{ itemResult }}</pre>
+      <div v-if="itemResult" class="result-output">
+        {{ itemResult }}
+      </div>
   </div>
 </template>
 
@@ -115,7 +117,6 @@ export default {
 .availability-button {
   width: 100%;
   padding: 10px;
-  margin-top: 10px;
   background-color: #42b983;
   border: none;
   color: white;
@@ -126,5 +127,13 @@ export default {
 .availability-button:hover {
   background-color: #367d62;
 }
+
+.result-output {
+    font-weight: bold;
+    text-align: center;
+    margin-top: 20px;
+    font-size: 1em;
+  }
+
 </style>
 
