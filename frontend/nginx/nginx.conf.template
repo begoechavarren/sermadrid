@@ -1,12 +1,15 @@
-# HTTP server to handle redirects to HTTPS for both www and non-www
+# HTTP server to handle redirects to HTTPS for both non-www and www
 server {
     listen 80;
-    server_name ${DOMAIN_NAME} www.${DOMAIN_NAME};
-
-    # Redirect all HTTP traffic to HTTPS with www
+    server_name ${DOMAIN_NAME};
     return 301 https://www.${DOMAIN_NAME}$request_uri;
 }
 
+server {
+    listen 80;
+    server_name www.${DOMAIN_NAME};
+    return 301 https://www.${DOMAIN_NAME}$request_uri;
+}
 
 # HTTPS server configuration for www
 server {
