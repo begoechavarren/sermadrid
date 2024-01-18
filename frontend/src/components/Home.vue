@@ -76,16 +76,21 @@ export default {
       container: "map",
       style: "mapbox://styles/mapbox/streets-v11",
       center: [-3.694241, 40.4167754],
-      zoom: 12
+      zoom: 12,
+      minZoom: 10.5,
+      maxBounds: [
+        [-4.1, 40.37], // Southwest
+        [-3.3, 40.5]  // Northeast
+    ]
     });
 
     const updateMask = () => {
       const bounds = this.map.getBounds().toArray().flat();
       const expandedBounds = [
-        bounds[0] - 5, // west (left) bound - expand by 1 degree
-        bounds[1] - 5, // south (bottom) bound - expand by 1 degree
-        bounds[2] + 5, // east (right) bound - expand by 1 degree
-        bounds[3] + 5, // north (top) bound - expand by 1 degree
+        bounds[0] - 1, // west (left) bound - expand by 1 degree
+        bounds[1] - 1, // south (bottom) bound - expand by 1 degree
+        bounds[2] + 1, // east (right) bound - expand by 1 degree
+        bounds[3] + 1, // north (top) bound - expand by 1 degree
       ];
       const bboxPoly = turf.bboxPolygon(expandedBounds);
       const maskGeometry = limiteZonaSer.features[0].geometry;
@@ -121,7 +126,7 @@ export default {
           type: "fill",
           paint: {
             "fill-color": "#000",
-            "fill-opacity": 0.5,
+            "fill-opacity": 0.2,
           },
         });
       }
