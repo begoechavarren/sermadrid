@@ -46,8 +46,14 @@ export default {
     FlatPickr,
   },
   data() {
+    const currentDate = new Date();
+    const formattedDate = currentDate.getFullYear() + '-' +
+      ('0' + (currentDate.getMonth() + 1)).slice(-2) + '-' + 
+      ('0' + currentDate.getDate()).slice(-2) + ' ' +
+      ('0' + currentDate.getHours()).slice(-2) + ':' +
+      ('0' + currentDate.getMinutes()).slice(-2);
     return {
-      datetime: "",
+      datetime: formattedDate,
       itemResult: null,
       map: null,
       marker: null,
@@ -76,10 +82,10 @@ export default {
     const updateMask = () => {
       const bounds = this.map.getBounds().toArray().flat();
       const expandedBounds = [
-        bounds[0] - 1, // west (left) bound - expand by 0.1 degrees
-        bounds[1] - 1, // south (bottom) bound - expand by 0.1 degrees
-        bounds[2] + 1, // east (right) bound - expand by 0.1 degrees
-        bounds[3] + 1, // north (top) bound - expand by 0.1 degrees
+        bounds[0] - 5, // west (left) bound - expand by 1 degree
+        bounds[1] - 5, // south (bottom) bound - expand by 1 degree
+        bounds[2] + 5, // east (right) bound - expand by 1 degree
+        bounds[3] + 5, // north (top) bound - expand by 1 degree
       ];
       const bboxPoly = turf.bboxPolygon(expandedBounds);
       const maskGeometry = limiteZonaSer.features[0].geometry;
