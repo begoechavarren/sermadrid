@@ -20,6 +20,9 @@ services:
       dockerfile: frontend.dockerfile
       args:
         MAPBOX_TOKEN: ${MAPBOX_TOKEN}
+    environment:
+      DOMAIN_NAME: ${DOMAIN_NAME}
+      CERTBOT_EMAIL: ${CERTBOT_EMAIL}
     volumes:
       - ./certs:/etc/letsencrypt
     ports:

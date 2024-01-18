@@ -7,11 +7,11 @@ nginx &
 sleep 5
 
 # Check if a valid SSL certificate already exists and if not, obtain a new one
-if [ ! -d "/etc/letsencrypt/live/sermadrid.org" ] || ! certbot certificates | grep -q "sermadrid.org"; then
-    echo "Obtaining new SSL certificate for sermadrid.org"
-    certbot certonly --webroot -w /usr/share/nginx/html -d sermadrid.org -d www.sermadrid.org --email begona.echavarren@gmail.com --agree-tos --non-interactive --no-eff-email
+if [ ! -d "/etc/letsencrypt/live/${DOMAIN_NAME}" ] || ! certbot certificates | grep -q "${DOMAIN_NAME}"; then
+    echo "Obtaining new SSL certificate for ${DOMAIN_NAME}"
+    certbot certonly --webroot -w /usr/share/nginx/html -d "${DOMAIN_NAME}" -d "www.${DOMAIN_NAME}" --email "${CERTBOT_EMAIL}" --agree-tos --non-interactive --no-eff-email
 else
-    echo "Existing SSL certificate found for sermadrid.org"
+    echo "Existing SSL certificate found for ${DOMAIN_NAME}"
 fi
 
 # Add Certbot renew to crontab
