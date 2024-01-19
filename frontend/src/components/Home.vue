@@ -195,6 +195,12 @@ export default {
       return masked;
     },
     async getItem() {
+      // Check if latitude and longitude are set
+      if (this.latitude === null || this.longitude === null) {
+        this.itemResult = "Please select the location in the Madrid SER zone map";
+        return; // Exit the function early
+      }
+
       try {
         const response = await fetch(
           `/api/v1/items/datetime/${this.datetime}/latitude/${this.latitude}/longitude/${this.longitude}`
