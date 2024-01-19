@@ -38,7 +38,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import FlatPickr from "vue-flatpickr-component";
 import "flatpickr/dist/flatpickr.css";
 import * as turf from "@turf/turf";
-import limiteZonaSer from "../assets/ser_zone_limit.geojson"; // Replace with your actual path
+import limiteZonaSer from "../assets/ser_zone_limit.geojson";
 
 export default {
   name: "HomeComponent",
@@ -51,7 +51,7 @@ export default {
       ('0' + (currentDate.getMonth() + 1)).slice(-2) + '-' + 
       ('0' + currentDate.getDate()).slice(-2) + ' ' +
       ('0' + currentDate.getHours()).slice(-2) + ':' +
-      ('0' + currentDate.getMinutes()).slice(-2);
+      ('0' + currentDate.getMinutes()).slice(-2) + ':00'; // Set seconds to 00
     return {
       datetime: formattedDate,
       itemResult: null,
