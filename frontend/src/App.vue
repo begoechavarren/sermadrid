@@ -1,10 +1,26 @@
 <template>
-  <nav>
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
-  </nav>
-  <router-view/>
+  <div>
+    <nav v-if="showNavBar">
+      <router-link to="/">Home</router-link> |
+      <router-link to="/about">About</router-link>
+    </nav>
+    <router-view/>
+  </div>
 </template>
+
+<script>
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+
+export default {
+  name: 'App',
+  setup() {
+    const route = useRoute();
+    const showNavBar = computed(() => route.name !== 'NotFound');
+    return { showNavBar };
+  },
+};
+</script>
 
 <style>
 #app {
