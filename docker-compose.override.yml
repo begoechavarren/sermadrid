@@ -14,6 +14,23 @@ services:
     networks:
       - app-network
 
+  celery:
+    build: 
+      context: ./backend
+      dockerfile: backend.dockerfile
+    command: celery -A app.app.celery_app.app worker --loglevel=info
+    environment:
+      - C_FORCE_ROOT=true
+    volumes:
+      - ./backend/app:/code/app
+    depends_on:
+      - backend
+
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+
   frontend:
     build:
       context: ./frontend
