@@ -18,7 +18,7 @@ services:
     build: 
       context: ./backend
       dockerfile: backend.dockerfile
-    command: celery -A app.app.celery_app.app worker --loglevel=info -E -c 4
+    command: celery -A app.app.core.celery_app.app worker --loglevel=info -E -c 4
     environment:
       - C_FORCE_ROOT=true
     volumes:

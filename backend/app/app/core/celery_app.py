@@ -11,7 +11,7 @@ app.conf.update(
     enable_utc=True,
 )
 
-app.autodiscover_tasks(["app.app.tasks"])
+app.autodiscover_tasks(["app.app.worker.v1.tasks"])
 
 
 if __name__ == "__main__":
