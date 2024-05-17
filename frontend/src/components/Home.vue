@@ -47,11 +47,17 @@ export default {
   },
   data() {
     const currentDate = new Date();
-    const formattedDate = currentDate.getFullYear() + '-' +
-      ('0' + (currentDate.getMonth() + 1)).slice(-2) + '-' + 
-      ('0' + currentDate.getDate()).slice(-2) + ' ' +
-      ('0' + currentDate.getHours()).slice(-2) + ':' +
-      ('0' + currentDate.getMinutes()).slice(-2) + ':00'; // Set seconds to 00
+    const formattedDate =
+      currentDate.getFullYear() +
+      "-" +
+      ("0" + (currentDate.getMonth() + 1)).slice(-2) +
+      "-" +
+      ("0" + currentDate.getDate()).slice(-2) +
+      " " +
+      ("0" + currentDate.getHours()).slice(-2) +
+      ":" +
+      ("0" + currentDate.getMinutes()).slice(-2) +
+      ":00"; // Set seconds to 00
     return {
       datetime: formattedDate,
       itemResult: null,
@@ -80,8 +86,8 @@ export default {
       minZoom: 10.5,
       maxBounds: [
         [-4.1, 40.37], // Southwest
-        [-3.3, 40.5]  // Northeast
-    ]
+        [-3.3, 40.5], // Northeast
+      ],
     });
 
     const updateMask = () => {
@@ -209,7 +215,25 @@ export default {
           throw new Error("Network response was not ok.");
         }
         const data = await response.json();
-        this.itemResult = `For the datetime ${this.datetime} and location lat: ${this.latitude}, long: ${this.longitude}, the parking availability is: ${data.result}`;
+        const taskId = data.task_id;
+
+        // Polling for the task result
+        let result;
+        while (!result) {
+          const resultResponse = await fetch(`/api/v1/items/result/${taskId}`);
+          if (resultResponse.status === 202) {
+            // Task is still pending
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before polling again
+          } else if (resultResponse.status === 200) {
+            // Task completed successfully
+            result = await resultResponse.json();
+          } else {
+            // Task failed
+            throw new Error("Task failed");
+          }
+        }
+
+        this.itemResult = `For the datetime ${this.datetime} and location lat: ${this.latitude}, long: ${this.longitude}, the parking availability is: ${result.result}`;
       } catch (error) {
         this.itemResult = "Error fetching availability: " + error.message;
       }

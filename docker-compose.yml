@@ -21,6 +21,8 @@ services:
     command: celery -A app.app.core.celery_app.app worker --loglevel=info -E -c 4
     environment:
       - C_FORCE_ROOT=true
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     volumes:
       - ./backend/app:/code/app
     depends_on:

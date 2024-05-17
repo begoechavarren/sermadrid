@@ -13,6 +13,5 @@ app.conf.update(
 
 app.autodiscover_tasks(["app.app.worker.v1.tasks"])
 
-
 if __name__ == "__main__":
     app.start()
