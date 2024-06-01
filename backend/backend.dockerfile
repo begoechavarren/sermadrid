@@ -1,10 +1,16 @@
-FROM python:3.10-slim AS build
+FROM python:3.11.9-slim AS build
 
 WORKDIR /code
 
-COPY ./requirements/requirements-api.txt /code/requirements/requirements-api.txt
+RUN pip install poetry
 
-RUN pip install --no-cache-dir --upgrade -r /code/requirements/requirements-api.txt
+COPY ./pyproject.toml /code/pyproject.toml
+
+COPY ./poetry.lock /code/poetry.lock
+
+COPY sermadrid /code/sermadrid
+
+RUN poetry config virtualenvs.create false && poetry install --no-root
 
 COPY ./app/app /code/app/app
 
