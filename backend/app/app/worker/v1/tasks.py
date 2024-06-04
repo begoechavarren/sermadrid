@@ -20,15 +20,14 @@ def predict_parking_availability(
 
     CURRENT_DIR = os.path.dirname(__file__)
     SERMADRID_INFERENCE = SerMadridInferencePipeline()
-    DATETIME_SINGLE = pd.to_datetime("2024-08-16 11:00:00")
+    DATETIME_SINGLE = pd.to_datetime(datetime_str)
+    # TODO: Calculate barrio_id from latitude and longitude
     BARRIO_ID = "405"
     MODEL_PATH = os.path.join(CURRENT_DIR, "data", "artifacts", "405.pkl")
 
     print(CustomProphetModelNH)
     with open(MODEL_PATH, "rb") as f:
         MODEL = cloudpickle.load(f)
-
-    # MODEL: CustomProphetModelNH = joblib.load(MODEL_PATH)
 
     def load_spaces_data(path: str) -> pd.DataFrame:
         spaces_df = pd.read_csv(
@@ -61,13 +60,16 @@ def predict_parking_availability(
     location = Location(latitude=latitude_str, longitude=longitude_str)
     print(f"Predicting parking availability for {datetime} at {location}")
 
-    predictions = SERMADRID_INFERENCE.run(
+    prediction = SERMADRID_INFERENCE.run(
         datetime=DATETIME_SINGLE,
         barrio_id=BARRIO_ID,
         model=MODEL,
         spaces_df=SPACES_DF,
         return_percentage=True,
-    )
-    print(f"Predictions: {predictions}")
+    )[0]
+    print(f"Predictions: {prediction}")
     result = random.choice(["easy", "medium", "hard"])
-    return {"result": result}
+    return {
+        "result": result,
+        "prediction": prediction,
+    }

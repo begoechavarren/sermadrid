@@ -233,7 +233,7 @@ export default {
           }
         }
 
-        this.itemResult = `For the datetime ${this.datetime} and location lat: ${this.latitude}, long: ${this.longitude}, the parking availability is: ${result.result}`;
+        this.itemResult = `For the datetime ${this.datetime} and location lat: ${this.latitude}, long: ${this.longitude}, the parking availability is ${result.prediction}, which means it is ${result.result}`;
       } catch (error) {
         this.itemResult = "Error fetching availability: " + error.message;
       }
