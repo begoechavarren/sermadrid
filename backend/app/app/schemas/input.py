@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from pydantic_extra_types.coordinate import Latitude, Longitude
 
 
+# TODO: Use in endpoints
 class Location(BaseModel):
     latitude: Latitude
     longitude: Longitude

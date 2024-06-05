@@ -39,6 +39,7 @@ import FlatPickr from "vue-flatpickr-component";
 import "flatpickr/dist/flatpickr.css";
 import * as turf from "@turf/turf";
 import limiteZonaSer from "../assets/ser_zone_limit.geojson";
+import neighbourhoodLimits from "../assets/neighbourhood_limits.geojson";
 
 export default {
   name: "HomeComponent",
@@ -138,7 +139,35 @@ export default {
       }
     };
 
-    this.map.on("load", updateMask);
+    this.map.on("load", () => {
+      updateMask();
+
+      // Filter out the polygon with CODDIS = "-"
+      const filteredNeighbourhoods = {
+        ...neighbourhoodLimits,
+        features: neighbourhoodLimits.features.filter(
+          feature => feature.properties.CODDIS !== "-"
+        ),
+      };
+
+      // Add filtered neighborhood limits as a new source and layer
+      this.map.addSource("neighbourhoodLimits", {
+        type: "geojson",
+        data: filteredNeighbourhoods,
+      });
+
+      this.map.addLayer({
+        id: "neighbourhoodLimits",
+        type: "line",
+        source: "neighbourhoodLimits",
+        layout: {},
+        paint: {
+          "line-color": "#ff0000",
+          "line-width": 2,
+        },
+      });
+    });
+
     this.map.on("moveend", updateMask);
 
     this.map.on("click", this.mapClickHandler);

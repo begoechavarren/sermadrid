@@ -14,13 +14,12 @@ def predict_parking_availability(
     import cloudpickle
     import pandas as pd
 
-    from app.app.schemas.input import DateTime, Location
+    from app.app.schemas.input import Location
     from sermadrid.models import CustomProphetModelNH
     from sermadrid.pipelines import SerMadridInferencePipeline
 
     CURRENT_DIR = os.path.dirname(__file__)
     SERMADRID_INFERENCE = SerMadridInferencePipeline()
-    DATETIME_SINGLE = pd.to_datetime(datetime_str)
     # TODO: Calculate barrio_id from latitude and longitude
     BARRIO_ID = "405"
     MODEL_PATH = os.path.join(CURRENT_DIR, "data", "artifacts", "405.pkl")
@@ -56,12 +55,11 @@ def predict_parking_availability(
     SPACES_DATA_PATH = os.path.join(CURRENT_DIR, "data", "input", "spaces.csv")
     SPACES_DF = load_spaces_data(SPACES_DATA_PATH)
 
-    datetime = DateTime(datetime=datetime_str)
     location = Location(latitude=latitude_str, longitude=longitude_str)
-    print(f"Predicting parking availability for {datetime} at {location}")
+    print(f"Predicting parking availability for {datetime_str} at {location}")
 
     prediction = SERMADRID_INFERENCE.run(
-        datetime=DATETIME_SINGLE,
+        datetime=datetime_str,
         barrio_id=BARRIO_ID,
         model=MODEL,
         spaces_df=SPACES_DF,

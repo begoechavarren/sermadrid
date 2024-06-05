@@ -11,6 +11,8 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
+# TODO: Replace latitude and longitude with the neighborhood id,
+#  but what about the adjacent neighborhoods? Also compute in the frontend?
 @router.get(
     "/datetime/{datetime_str}/latitude/{latitude_str}/longitude/{longitude_str}",
     response_model=dict,
