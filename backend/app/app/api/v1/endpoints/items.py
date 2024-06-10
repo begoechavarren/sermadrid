@@ -11,25 +11,23 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-# TODO: Replace latitude and longitude with the neighborhood id,
-#  but what about the adjacent neighborhoods? Also compute in the frontend?
+# TODO: What about the adjacent neighborhoods? Also compute in the frontend?
 @router.get(
-    "/datetime/{datetime_str}/latitude/{latitude_str}/longitude/{longitude_str}",
+    "/datetime/{datetime_str}/neighbourhood_id/{neighbourhood_id_str}",
     response_model=dict,
 )
 def read_item(
     datetime_str: str,
-    latitude_str: str,
-    longitude_str: str,
+    neighbourhood_id_str: str,
 ) -> dict:
     try:
         DateTime(datetime=datetime_str)
-        Location(latitude=latitude_str, longitude=longitude_str)
+        Location(neighbourhood_id=neighbourhood_id_str)
     except ValueError as e:
         logger.error(f"Validation error: {e}")
         raise HTTPException(status_code=400, detail=str(e)) from e
 
-    task = predict_parking_availability.delay(datetime_str, latitude_str, longitude_str)
+    task = predict_parking_availability.delay(datetime_str, neighbourhood_id_str)
     logger.info(f"Task created: {task.id}")
     return {"task_id": task.id}
 

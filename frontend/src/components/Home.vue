@@ -66,6 +66,8 @@ export default {
       marker: null,
       latitude: null,
       longitude: null,
+      neighbourhood_id: null,
+      clickedFeature: null,
       showOutsideMessage: false,
       messagePosition: { x: 0, y: 0 },
       config: {
@@ -142,29 +144,10 @@ export default {
     this.map.on("load", () => {
       updateMask();
 
-      // Filter out the polygon with CODDIS = "-"
-      const filteredNeighbourhoods = {
-        ...neighbourhoodLimits,
-        features: neighbourhoodLimits.features.filter(
-          feature => feature.properties.CODDIS !== "-"
-        ),
-      };
-
-      // Add filtered neighborhood limits as a new source and layer
+      // Add neighborhood limits as a new source without showing the lines initially
       this.map.addSource("neighbourhoodLimits", {
         type: "geojson",
-        data: filteredNeighbourhoods,
-      });
-
-      this.map.addLayer({
-        id: "neighbourhoodLimits",
-        type: "line",
-        source: "neighbourhoodLimits",
-        layout: {},
-        paint: {
-          "line-color": "#ff0000",
-          "line-width": 2,
-        },
+        data: neighbourhoodLimits,
       });
     });
 
@@ -188,6 +171,18 @@ export default {
         this.marker = new mapboxgl.Marker()
           .setLngLat([this.longitude, this.latitude])
           .addTo(this.map);
+
+        // Find the neighborhood the point is in
+        this.clickedFeature = null;
+        for (const feature of neighbourhoodLimits.features) {
+          if (turf.booleanPointInPolygon(point, feature)) {
+            const properties = feature.properties;
+            this.neighbourhood_id = this.formatNeighbourhoodId(properties.CODDIS, properties.CODBAR);
+            this.clickedFeature = feature;
+            break;
+          }
+        }
+
       } else {
         // Show the message and update the position
         this.messagePosition = {
@@ -202,43 +197,21 @@ export default {
         }, 2000);
       }
     },
-    createMask(maskFeatureCollection, bounds) {
-      var bboxPoly = turf.bboxPolygon(bounds);
-      var maskGeometry = maskFeatureCollection.features[0].geometry;
-
-      // Check if the geometry is a MultiPolygon and use the first Polygon
-      if (maskGeometry.type === "MultiPolygon") {
-        // Extract the first polygon's coordinates from the MultiPolygon
-        var firstPolygonCoordinates = maskGeometry.coordinates[0];
-        // Create a Polygon geometry from the first set of coordinates
-        maskGeometry = {
-          type: "Polygon",
-          coordinates: firstPolygonCoordinates,
-        };
-      }
-
-      // Perform the difference operation
-      var masked = turf.difference(bboxPoly, maskGeometry);
-
-      // Check if the operation was successful
-      if (!masked) {
-        throw new Error(
-          "Difference operation failed. The mask might not be subtracting correctly."
-        );
-      }
-
-      return masked;
+    formatNeighbourhoodId(CODDIS, CODBAR) {
+      // Ensure CODBAR is always two digits
+      const formattedCODBAR = String(CODBAR).padStart(2, '0');
+      return `${CODDIS}${formattedCODBAR}`;
     },
     async getItem() {
-      // Check if latitude and longitude are set
-      if (this.latitude === null || this.longitude === null) {
+      // Check if neighbourhood_id is set
+      if (this.neighbourhood_id === null) {
         this.itemResult = "Please select the location in the Madrid SER zone map";
         return; // Exit the function early
       }
 
       try {
         const response = await fetch(
-          `/api/v1/items/datetime/${this.datetime}/latitude/${this.latitude}/longitude/${this.longitude}`
+          `/api/v1/items/datetime/${this.datetime}/neighbourhood_id/${this.neighbourhood_id}`
         );
         if (!response.ok) {
           throw new Error("Network response was not ok.");
@@ -262,7 +235,29 @@ export default {
           }
         }
 
-        this.itemResult = `For the datetime ${this.datetime} and location lat: ${this.latitude}, long: ${this.longitude}, the parking availability is ${result.prediction}, which means it is ${result.result}`;
+        // Highlight the selected neighborhood when the result is shown
+        if (this.clickedFeature) {
+          const highlightSourceId = 'highlight';
+          if (this.map.getSource(highlightSourceId)) {
+            this.map.getSource(highlightSourceId).setData(this.clickedFeature);
+          } else {
+            this.map.addSource(highlightSourceId, {
+              type: 'geojson',
+              data: this.clickedFeature,
+            });
+            this.map.addLayer({
+              id: 'highlight',
+              type: 'fill',
+              source: highlightSourceId,
+              paint: {
+                'fill-color': '#90ee90', // light green color similar to the availability button but lighter and transparent
+                'fill-opacity': 0.5,
+              },
+            });
+          }
+        }
+
+        this.itemResult = `For the datetime ${this.datetime} and neighbourhood ${this.neighbourhood_id}, the percentage of available parking spots is ${parseInt(result.prediction * 100)}%, which means it is ${result.result}`;
       } catch (error) {
         this.itemResult = "Error fetching availability: " + error.message;
       }
@@ -318,10 +313,6 @@ export default {
   color: white;
   cursor: pointer;
   border-radius: 5px;
-}
-
-.availability-button:hover {
-  background-color: #367d62;
 }
 
 .result-output {

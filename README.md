@@ -24,6 +24,7 @@
     $ docker-compose up -d
     ```
 
+TODO: Update this
 The app will then be available in http://localhost:80. Some example variables to run it are:
 - datetime: `2024-01-01T12:30:00`
 - latitude: `40.416775`

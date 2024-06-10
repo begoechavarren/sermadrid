@@ -174,3 +174,4 @@ pnpm-debug.log*
 *.csv
 *.joblib
 *.pkl
+*.json

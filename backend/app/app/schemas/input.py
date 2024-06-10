@@ -1,13 +1,13 @@
 from datetime import datetime
 
 from pydantic import BaseModel
-from pydantic_extra_types.coordinate import Latitude, Longitude
 
 
 # TODO: Use in endpoints
+# TODO: Change name to Location
 class Location(BaseModel):
-    latitude: Latitude
-    longitude: Longitude
+    # TODO: Change to int?
+    neighbourhood_id: str
 
 
 class DateTime(BaseModel):
