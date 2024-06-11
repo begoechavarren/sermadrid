@@ -3,12 +3,13 @@ import { createApp } from "vue";
 import axios from 'axios';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faGithub } from '@fortawesome/free-brands-svg-icons';
+import { faInfoCircle, faHome } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 import App from './App.vue';
 import router from './router';
 
-library.add(faGithub);
+library.add(faGithub, faInfoCircle, faHome);
 
 const app = createApp(App);
 

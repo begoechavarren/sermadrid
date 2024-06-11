@@ -1,33 +1,24 @@
 <template>
   <div class="home">
-    <h1>sermadrid</h1>
-    <p>
-      Select the location and time where you would like to park in the Madrid
-      SER zone
-    </p>
     <div id="map" class="map-container"></div>
-    <div
-      v-show="showOutsideMessage"
-      class="outside-message"
-      :style="messageStyle"
-    >
-      Out of the SER zone
+    <div class="header">
+      <img alt="sermadrid logo" src="../assets/logo.png" class="logo">
+      <div class="header-text">
+        <h1>sermadrid</h1>
+        <p>Select the location and time where you would like to park in the Madrid SER zone</p>
+      </div>
     </div>
     <form @submit.prevent="getItem" class="availability-form">
       <div class="form-group">
-        <flat-pickr
-          v-model="datetime"
-          :config="config"
-          class="form-control"
-          placeholder="Select date and time"
-        ></flat-pickr>
+        <flat-pickr v-model="datetime" :config="config" class="form-control" placeholder="Select date and time"></flat-pickr>
       </div>
-      <button type="submit" class="availability-button">
-        Get Availability
-      </button>
+      <button type="submit" class="availability-button">Get Availability</button>
     </form>
     <div v-if="itemResult" class="result-output">
       {{ itemResult }}
+    </div>
+    <div class="about-icon" @click="goToAbout">
+      <font-awesome-icon :icon="['fas', 'info-circle']" />
     </div>
   </div>
 </template>
@@ -38,6 +29,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import FlatPickr from "vue-flatpickr-component";
 import "flatpickr/dist/flatpickr.css";
 import * as turf from "@turf/turf";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import limiteZonaSer from "../assets/ser_zone_limit.geojson";
 import neighbourhoodLimits from "../assets/neighbourhood_limits.geojson";
 
@@ -45,6 +37,7 @@ export default {
   name: "HomeComponent",
   components: {
     FlatPickr,
+    FontAwesomeIcon,
   },
   data() {
     const currentDate = new Date();
@@ -207,7 +200,6 @@ export default {
         .toLowerCase()
         .replace(/\b\w/g, function (l) { return l.toUpperCase(); });
     },
-
     async getItem() {
       // Check if neighbourhood_id is set
       if (this.neighbourhood_id === null) {
@@ -268,6 +260,9 @@ export default {
         this.itemResult = "Error fetching availability: " + error.message;
       }
     },
+    goToAbout() {
+      this.$router.push({ name: 'about' });
+    },
   },
   computed: {
     messageStyle() {
@@ -281,19 +276,54 @@ export default {
 </script>
 
 <style scoped>
+.home {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  margin: 0; /* Remove any default margin */
+  padding: 0; /* Remove any default padding */
+}
+
 .map-container {
-  height: 300px;
-  margin-bottom: 20px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.header {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.logo {
+  width: 60px;
+  height: 60px;
+  margin-right: 10px;
+}
+
+.header-text h1, .header-text p {
+  margin: 0;
 }
 
 .availability-form {
-  max-width: 300px;
-  margin: auto;
-}
-
-.availability-form .form-group {
-  display: flex;
-  flex-direction: column;
+  position: absolute;
+  top: 120px;
+  left: 20px;
+  z-index: 2;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 10px;
+  border-radius: 10px;
 }
 
 .availability-form .form-group {
@@ -322,10 +352,18 @@ export default {
 }
 
 .result-output {
+  position: absolute;
+  bottom: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
   font-weight: bold;
   text-align: center;
   margin-top: 20px;
   font-size: 1em;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 10px;
+  border-radius: 10px;
 }
 
 .outside-message {
@@ -337,5 +375,15 @@ export default {
   pointer-events: none;
   transform: translate(-50%, -50%);
   z-index: 1000; /* Ensure it's above map elements */
+}
+
+.about-icon {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 2;
+  font-size: 24px;
+  cursor: pointer;
+  color: #42b983;
 }
 </style>

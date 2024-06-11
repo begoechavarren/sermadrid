@@ -1,12 +1,11 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png" style="width: 150px; height: 150px;">
-    <Home msg="sermadrid"/>
+    <Home />
   </div>
 </template>
 
 <script>
-import Home from '@/components/Home.vue'
+import Home from '@/components/Home.vue';
 
 export default {
   name: 'HomeView',
@@ -15,3 +14,12 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.home {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  width: 100vw;
+}
+</style>
