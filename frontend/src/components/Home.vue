@@ -5,10 +5,13 @@
       <img alt="sermadrid logo" src="../assets/logo.png" class="logo">
       <div class="header-text">
         <h1>sermadrid</h1>
-        <p>Select the location and time where you would like to park in the Madrid SER zone</p>
       </div>
     </div>
     <form @submit.prevent="getItem" class="availability-form">
+      <p class="form-description">Select the location and time where you would like to park in the <br> Madrid SER zone</p>
+      <div class="form-group">
+        <input type="text" class="form-control" placeholder="Enter address">
+      </div>
       <div class="form-group">
         <flat-pickr v-model="datetime" :config="config" class="form-control" placeholder="Select date and time"></flat-pickr>
       </div>
@@ -77,7 +80,7 @@ export default {
     this.map = new mapboxgl.Map({
       container: "map",
       style: "mapbox://styles/mapbox/streets-v11",
-      center: [-3.694241, 40.4167754],
+      center: [-3.694241, 40.436185],
       zoom: 12,
       minZoom: 10.5,
       maxBounds: [
@@ -302,53 +305,62 @@ export default {
   display: flex;
   align-items: center;
   background-color: rgba(255, 255, 255, 0.8);
-  padding: 10px;
+  padding: 5px 10px; /* Adjusted internal padding */
   border-radius: 10px;
 }
 
 .logo {
-  width: 60px;
-  height: 60px;
-  margin-right: 10px;
+  width: 107.52px; /* Decreased logo size by 0.7x */
+  height: 107.52px;
 }
 
-.header-text h1, .header-text p {
+.header-text {
+  margin-left: -20px; /* Reduced space between logo and text, overlaps slightly */
+}
+
+.header-text h1 {
   margin: 0;
+  font-size: 1.82em; /* Decreased font size by 0.7x */
+  margin-right: 20px; /* Added internal margin to the right */
 }
 
 .availability-form {
   position: absolute;
-  top: 120px;
+  top: 150px; /* Further reduced top margin to bring it closer to the header */
   left: 20px;
   z-index: 2;
+  width: 300px; /* Reduced width */
   background-color: rgba(255, 255, 255, 0.8);
   padding: 10px;
   border-radius: 10px;
 }
 
+.form-description {
+  margin: 0 0 10px 0; /* Add some space below the description */
+  white-space: normal; /* Allow wrapping */
+  max-width: 100%; /* Ensure it fits within the form */
+  line-height: 1.5em; /* Adjust line height for better readability */
+}
+
 .availability-form .form-group {
   display: flex;
   flex-direction: column;
-  margin-bottom: 15px;
-}
-
-.availability-form .form-group label {
-  margin-bottom: 5px;
+  margin-bottom: 5px; /* Reduce the space between the form groups */
 }
 
 .availability-form .form-control {
   padding: 8px;
-  margin-bottom: 10px;
 }
 
 .availability-button {
   width: 100%;
-  padding: 10px;
+  padding: 8px; /* Reduce padding */
   background-color: #42b983;
   border: none;
   color: white;
   cursor: pointer;
   border-radius: 5px;
+  margin-top: 5px; /* Reduce space between datetime and button */
 }
 
 .result-output {
