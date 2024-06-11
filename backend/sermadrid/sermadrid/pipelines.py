@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import List
 
 import pandas as pd
 
@@ -24,8 +24,7 @@ class SerMadridInferencePipeline:
         self,
         datetime: pd.Timestamp | pd.DatetimeIndex,
         model,
-        spaces_dict: Dict,
-        barrio_id: str,
+        num_plazas: int,
         return_percentage: bool = False,
     ):
         predictions = self._inference(
@@ -34,7 +33,6 @@ class SerMadridInferencePipeline:
         )
 
         if return_percentage:
-            num_plazas = spaces_dict[barrio_id]
             predictions = 1 - (predictions / num_plazas)
 
         return predictions

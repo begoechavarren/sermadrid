@@ -14,13 +14,13 @@ def predict_parking_availability(
 
     prediction = SERMADRID_INFERENCE.run(
         datetime=datetime_str,
-        barrio_id=neighbourhood_id_str,
         model=MODEL,
-        spaces_dict=spaces_dict,
+        num_plazas=spaces_dict[neighbourhood_id_str]["num_plazas"],
         return_percentage=True,
     )[0]
     result = random.choice(["easy", "medium", "hard"])
     return {
+        "barrio": spaces_dict[neighbourhood_id_str]["barrio"],
         "result": result,
         "prediction": prediction,
     }

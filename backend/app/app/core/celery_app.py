@@ -41,7 +41,7 @@ def load_data():
     with open(spaces_data_path, "r") as json_file:
         spaces_clean = json.load(json_file)
         for key, value in spaces_clean.items():
-            spaces_dict[key] = int(value)
+            spaces_dict[key] = value
 
 
 @worker_process_init.connect

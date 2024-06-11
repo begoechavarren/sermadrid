@@ -202,6 +202,12 @@ export default {
       const formattedCODBAR = String(CODBAR).padStart(2, '0');
       return `${CODDIS}${formattedCODBAR}`;
     },
+    capitalizeWords(str) {
+      return str
+        .toLowerCase()
+        .replace(/\b\w/g, function (l) { return l.toUpperCase(); });
+    },
+
     async getItem() {
       // Check if neighbourhood_id is set
       if (this.neighbourhood_id === null) {
@@ -257,7 +263,7 @@ export default {
           }
         }
 
-        this.itemResult = `For the datetime ${this.datetime} and neighbourhood ${this.neighbourhood_id}, the percentage of available parking spots is ${parseInt(result.prediction * 100)}%, which means it is ${result.result}`;
+        this.itemResult = `For the datetime ${this.datetime} and neighbourhood ${this.capitalizeWords(result.barrio)}, the percentage of available parking spots is ${parseInt(result.prediction * 100)}% (${result.result})`;
       } catch (error) {
         this.itemResult = "Error fetching availability: " + error.message;
       }
