@@ -8,36 +8,60 @@
       </div>
     </div>
     <form @submit.prevent="getItem" class="availability-form">
-      <p class="form-description">Select the location and time where you would like to park in the <br> Madrid SER zone</p>
+      <p class="form-description">
+        Select the location and time where you would like to park in the <br>
+        Madrid SER zone
+      </p>
       <div class="form-group">
-        <input type="text" class="form-control" placeholder="Enter address">
+        <input
+          v-model="address"
+          type="text"
+          class="form-control"
+          placeholder="Enter address or click on the map"
+          @input="getSuggestions"
+        />
+        <ul v-if="suggestions.length" class="suggestions-list">
+          <li
+            v-for="(suggestion, index) in suggestions"
+            :key="index"
+            @click="selectSuggestion(suggestion)"
+          >
+            {{ suggestion.place_name }}
+          </li>
+        </ul>
       </div>
       <div class="form-group">
-        <flat-pickr v-model="datetime" :config="config" class="form-control" placeholder="Select date and time"></flat-pickr>
+        <flat-pickr
+          v-model="datetime"
+          :config="config"
+          class="form-control"
+          placeholder="Select date and time"
+        ></flat-pickr>
       </div>
       <button type="submit" class="availability-button">Get Availability</button>
     </form>
-    <div v-if="itemResult" class="result-output">
-      {{ itemResult }}
-    </div>
+    <div v-if="itemResult" class="result-output">{{ itemResult }}</div>
     <div class="about-icon" @click="goToAbout">
       <font-awesome-icon :icon="['fas', 'info-circle']" />
+    </div>
+    <div v-if="showOutsideMessage" :class="{'outside-message': !isAddressCheck, 'centered-message': isAddressCheck}" :style="messageStyle">
+      {{ outsideMessage }}
     </div>
   </div>
 </template>
 
 <script>
-import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
-import FlatPickr from "vue-flatpickr-component";
-import "flatpickr/dist/flatpickr.css";
-import * as turf from "@turf/turf";
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import limiteZonaSer from "../assets/ser_zone_limit.geojson";
-import neighbourhoodLimits from "../assets/neighbourhood_limits.geojson";
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+import FlatPickr from 'vue-flatpickr-component';
+import 'flatpickr/dist/flatpickr.css';
+import * as turf from '@turf/turf';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import limiteZonaSer from '../assets/ser_zone_limit.geojson';
+import neighbourhoodLimits from '../assets/neighbourhood_limits.geojson';
 
 export default {
-  name: "HomeComponent",
+  name: 'HomeComponent',
   components: {
     FlatPickr,
     FontAwesomeIcon,
@@ -46,17 +70,19 @@ export default {
     const currentDate = new Date();
     const formattedDate =
       currentDate.getFullYear() +
-      "-" +
-      ("0" + (currentDate.getMonth() + 1)).slice(-2) +
-      "-" +
-      ("0" + currentDate.getDate()).slice(-2) +
-      " " +
-      ("0" + currentDate.getHours()).slice(-2) +
-      ":" +
-      ("0" + currentDate.getMinutes()).slice(-2) +
-      ":00"; // Set seconds to 00
+      '-' +
+      ('0' + (currentDate.getMonth() + 1)).slice(-2) +
+      '-' +
+      ('0' + currentDate.getDate()).slice(-2) +
+      ' ' +
+      ('0' + currentDate.getHours()).slice(-2) +
+      ':' +
+      ('0' + currentDate.getMinutes()).slice(-2) +
+      ':00'; // Set seconds to 00
     return {
       datetime: formattedDate,
+      address: '',
+      suggestions: [],
       itemResult: null,
       map: null,
       marker: null,
@@ -65,12 +91,14 @@ export default {
       neighbourhood_id: null,
       clickedFeature: null,
       showOutsideMessage: false,
+      isAddressCheck: false,
+      outsideMessage: '',
       messagePosition: { x: 0, y: 0 },
       config: {
         enableTime: true,
-        dateFormat: "Y-m-d H:i",
+        dateFormat: 'Y-m-d H:i',
         defaultDate: new Date(),
-        minDate: "today",
+        minDate: 'today',
         time_24hr: true,
       },
     };
@@ -78,8 +106,8 @@ export default {
   mounted() {
     mapboxgl.accessToken = process.env.VUE_APP_MAPBOX_TOKEN;
     this.map = new mapboxgl.Map({
-      container: "map",
-      style: "mapbox://styles/mapbox/streets-v11",
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v11',
       center: [-3.694241, 40.436185],
       zoom: 12,
       minZoom: 10.5,
@@ -101,9 +129,9 @@ export default {
       const maskGeometry = limiteZonaSer.features[0].geometry;
       let firstPolygonGeometry;
 
-      if (maskGeometry.type === "MultiPolygon") {
+      if (maskGeometry.type === 'MultiPolygon') {
         firstPolygonGeometry = {
-          type: "Polygon",
+          type: 'Polygon',
           coordinates: maskGeometry.coordinates[0],
         };
       } else {
@@ -113,60 +141,107 @@ export default {
       const mask = turf.difference(bboxPoly, firstPolygonGeometry);
 
       if (!mask) {
-        console.error("Unable to create mask from the given MultiPolygon.");
+        console.error('Unable to create mask from the given MultiPolygon.');
         return;
       }
 
-      if (this.map.getSource("mask")) {
-        this.map.getSource("mask").setData(mask);
+      if (this.map.getSource('mask')) {
+        this.map.getSource('mask').setData(mask);
       } else {
-        this.map.addSource("mask", {
-          type: "geojson",
+        this.map.addSource('mask', {
+          type: 'geojson',
           data: mask,
         });
 
         this.map.addLayer({
-          id: "mask",
-          source: "mask",
-          type: "fill",
+          id: 'mask',
+          source: 'mask',
+          type: 'fill',
           paint: {
-            "fill-color": "#000",
-            "fill-opacity": 0.2,
+            'fill-color': '#000',
+            'fill-opacity': 0.2,
           },
         });
       }
     };
 
-    this.map.on("load", () => {
+    this.map.on('load', () => {
       updateMask();
 
       // Add neighborhood limits as a new source without showing the lines initially
-      this.map.addSource("neighbourhoodLimits", {
-        type: "geojson",
+      this.map.addSource('neighbourhoodLimits', {
+        type: 'geojson',
         data: neighbourhoodLimits,
       });
     });
 
-    this.map.on("moveend", updateMask);
+    this.map.on('moveend', updateMask);
 
-    this.map.on("click", this.mapClickHandler);
+    this.map.on('click', this.mapClickHandler);
   },
   methods: {
-    mapClickHandler(e) {
-      const point = turf.point([e.lngLat.lng, e.lngLat.lat]);
+    async getSuggestions() {
+      if (this.address.length < 3) {
+        this.suggestions = [];
+        return;
+      }
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(this.address)}.json?access_token=${mapboxgl.accessToken}`
+      );
+      const data = await response.json();
+      this.suggestions = data.features;
+    },
+    async selectSuggestion(suggestion) {
+      this.address = suggestion.place_name;
+      this.suggestions = [];
+      const [lng, lat] = suggestion.center;
+      this.handleCoordinates(lng, lat, true);
+    },
+    async geocodeAddress(address) {
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxgl.accessToken}`
+      );
+      const data = await response.json();
+      if (data.features && data.features.length > 0) {
+        const [lng, lat] = data.features[0].center;
+        return { lng, lat };
+      } else {
+        throw new Error('Address not found');
+      }
+    },
+    async reverseGeocode(lng, lat) {
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}`
+      );
+      const data = await response.json();
+      if (data.features && data.features.length > 0) {
+        return data.features[0].place_name;
+      } else {
+        throw new Error('Reverse geocoding failed');
+      }
+    },
+    async mapClickHandler(e) {
+      this.handleCoordinates(e.lngLat.lng, e.lngLat.lat, false, e.originalEvent);
+    },
+    async handleCoordinates(lng, lat, isAddress, event) {
+      this.clearMessages(); // Clear any existing messages
+      const point = turf.point([lng, lat]);
       const within = turf.booleanPointInPolygon(
         point,
         limiteZonaSer.features[0].geometry
       );
       if (within) {
-        this.latitude = e.lngLat.lat;
-        this.longitude = e.lngLat.lng;
+        this.latitude = lat;
+        this.longitude = lng;
         if (this.marker) {
           this.marker.remove();
         }
         this.marker = new mapboxgl.Marker()
           .setLngLat([this.longitude, this.latitude])
           .addTo(this.map);
+
+        // Remove existing highlight
+        this.clearHighlight();
 
         // Find the neighborhood the point is in
         this.clickedFeature = null;
@@ -179,19 +254,56 @@ export default {
           }
         }
 
+        // Update address in the text box
+        if (!isAddress) {
+          const placeName = await this.reverseGeocode(lng, lat);
+          this.address = placeName;
+        }
+
+        this.showOutsideMessage = false;
+        this.itemResult = null; // Clear previous result
       } else {
-        // Show the message and update the position
-        this.messagePosition = {
-          x: e.originalEvent.clientX,
-          y: e.originalEvent.clientY,
-        };
         this.showOutsideMessage = true;
-        // Use a timeout to hide the message after 2 seconds
-        clearTimeout(this.hideMessageTimeout);
-        this.hideMessageTimeout = setTimeout(() => {
-          this.showOutsideMessage = false;
-        }, 2000);
+        this.outsideMessage = 'Please select an address within the Madrid SER zone';
+        this.clearMarker();
+        this.clearHighlight();
+        this.address = '';
+        this.itemResult = null;
+
+        // Ensure proper positioning
+        const viewportWidth = window.innerWidth;
+        const messageBoxWidth = 160; // Approximate width of the message box
+        const x = event.clientX;
+        let y = event.clientY;
+
+        // Adjust the position to ensure message box is within viewport
+        if (x <= viewportWidth / 2) {
+          this.messagePosition = { x: Math.min(x + messageBoxWidth, viewportWidth - messageBoxWidth), y };
+        } else {
+          this.messagePosition = { x: Math.max(x - messageBoxWidth, 0), y };
+        }
+
+        this.isAddressCheck = !event;
+        this.neighbourhood_id = null; // Ensure the neighbourhood_id is null
       }
+    },
+    clearMessages() {
+      this.showOutsideMessage = false;
+    },
+    clearMarker() {
+      if (this.marker) {
+        this.marker.remove();
+      }
+      this.marker = null;
+    },
+    clearHighlight() {
+      if (this.map.getLayer('highlight')) {
+        this.map.removeLayer('highlight');
+      }
+      if (this.map.getSource('highlight')) {
+        this.map.removeSource('highlight');
+      }
+      this.clickedFeature = null;
     },
     formatNeighbourhoodId(CODDIS, CODBAR) {
       // Ensure CODBAR is always two digits
@@ -201,21 +313,43 @@ export default {
     capitalizeWords(str) {
       return str
         .toLowerCase()
-        .replace(/\b\w/g, function (l) { return l.toUpperCase(); });
+        .replace(/\b\w/g, function (l) {
+          return l.toUpperCase();
+        });
     },
     async getItem() {
-      // Check if neighbourhood_id is set
-      if (this.neighbourhood_id === null) {
-        this.itemResult = "Please select the location in the Madrid SER zone map";
+      this.clearMessages(); // Clear any existing messages
+      if (!this.address) {
+        this.showOutsideMessage = true;
+        this.outsideMessage = 'Please select the address where you would like to park';
+        this.isAddressCheck = true;
         return; // Exit the function early
       }
-
+      if (this.neighbourhood_id === null) {
+        this.showOutsideMessage = true;
+        this.outsideMessage = 'Please select an address within the Madrid SER zone';
+        this.isAddressCheck = true;
+        return; // Exit the function early
+      }
       try {
+        if (this.address) {
+          const coords = await this.geocodeAddress(this.address);
+          await this.handleCoordinates(coords.lng, coords.lat, true);
+        }
+        // Check if neighbourhood_id is set
+        if (this.neighbourhood_id === null) {
+          this.itemResult = 'Please select an address within the Madrid SER zone';
+          this.showOutsideMessage = true;
+          this.outsideMessage = 'Please select an address within the Madrid SER zone';
+          this.isAddressCheck = true;
+          return; // Exit the function early
+        }
+
         const response = await fetch(
           `/api/v1/items/datetime/${this.datetime}/neighbourhood_id/${this.neighbourhood_id}`
         );
         if (!response.ok) {
-          throw new Error("Network response was not ok.");
+          throw new Error('Network response was not ok.');
         }
         const data = await response.json();
         const taskId = data.task_id;
@@ -226,13 +360,13 @@ export default {
           const resultResponse = await fetch(`/api/v1/items/result/${taskId}`);
           if (resultResponse.status === 202) {
             // Task is still pending
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before polling again
+            await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second before polling again
           } else if (resultResponse.status === 200) {
             // Task completed successfully
             result = await resultResponse.json();
           } else {
             // Task failed
-            throw new Error("Task failed");
+            throw new Error('Task failed');
           }
         }
 
@@ -258,9 +392,13 @@ export default {
           }
         }
 
-        this.itemResult = `For the datetime ${this.datetime} and neighbourhood ${this.capitalizeWords(result.barrio)}, the percentage of available parking spots is ${parseInt(result.prediction * 100)}% (${result.result})`;
+        this.itemResult = `For the datetime ${this.datetime} and neighbourhood ${this.capitalizeWords(
+          result.barrio
+        )}, the percentage of available parking spots is ${parseInt(result.prediction * 100)}% (${
+          result.result
+        })`;
       } catch (error) {
-        this.itemResult = "Error fetching availability: " + error.message;
+        this.itemResult = 'Error fetching availability: ' + error.message;
       }
     },
     goToAbout() {
@@ -269,10 +407,12 @@ export default {
   },
   computed: {
     messageStyle() {
-      return {
-        top: this.messagePosition.y + "px",
-        left: this.messagePosition.x + "px",
-      };
+      return this.isAddressCheck
+        ? {}
+        : {
+            top: `${this.messagePosition.y}px`,
+            left: `${this.messagePosition.x}px`,
+          };
     },
   },
 };
@@ -305,12 +445,14 @@ export default {
   display: flex;
   align-items: center;
   background-color: rgba(255, 255, 255, 0.8);
-  padding: 5px 10px; /* Adjusted internal padding */
+  padding: 2px 2px; /* Adjusted internal padding */
   border-radius: 10px;
+  width: 280px; /* Updated width */
+  height: 120px; /* Restored height */
 }
 
 .logo {
-  width: 107.52px; /* Decreased logo size by 0.7x */
+  width: 107.52px; /* Restored logo size */
   height: 107.52px;
 }
 
@@ -320,7 +462,7 @@ export default {
 
 .header-text h1 {
   margin: 0;
-  font-size: 1.82em; /* Decreased font size by 0.7x */
+  font-size: 1.82em; /* Restored font size */
   margin-right: 20px; /* Added internal margin to the right */
 }
 
@@ -329,7 +471,7 @@ export default {
   top: 150px; /* Further reduced top margin to bring it closer to the header */
   left: 20px;
   z-index: 2;
-  width: 300px; /* Reduced width */
+  width: 280px; /* Updated width */
   background-color: rgba(255, 255, 255, 0.8);
   padding: 10px;
   border-radius: 10px;
@@ -346,10 +488,33 @@ export default {
   display: flex;
   flex-direction: column;
   margin-bottom: 5px; /* Reduce the space between the form groups */
+  position: relative; /* For suggestions positioning */
 }
 
 .availability-form .form-control {
   padding: 8px;
+}
+
+.suggestions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  position: absolute;
+  top: 38px; /* Adjust to be below the input field */
+  width: 100%;
+  z-index: 3;
+}
+
+.suggestions-list li {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.suggestions-list li:hover {
+  background: #f0f0f0;
 }
 
 .availability-button {
@@ -378,15 +543,29 @@ export default {
   border-radius: 10px;
 }
 
-.outside-message {
-  position: fixed;
-  background: white;
-  padding: 5px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+.outside-message,
+.centered-message {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.8); /* Match the background color */
+  padding: 10px; /* Match the padding */
+  border: 1px solid #ccc; /* Match the border */
+  border-radius: 10px; /* Match the border radius */
   pointer-events: none;
-  transform: translate(-50%, -50%);
   z-index: 1000; /* Ensure it's above map elements */
+  text-align: center;
+  font-weight: bold;
+  width: 300px;
+}
+
+.outside-message {
+  /* Ensure proper positioning and transformation for outside message */
+  transform: translate(-50%, -50%);
+}
+
+.centered-message {
+  bottom: 20px; /* Adjust bottom position */
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .about-icon {
