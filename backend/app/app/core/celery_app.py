@@ -27,7 +27,7 @@ def load_data():
     CURRENT_DIR = os.path.dirname(__file__)
 
     # Load models
-    model_dir = os.path.join(CURRENT_DIR, "..", "worker", "v1", "data", "artifacts")
+    model_dir = os.path.join(CURRENT_DIR, "..", "worker", "v1", "data", "models")
     for model_file in os.listdir(model_dir):
         if model_file.endswith(".pkl"):
             model_path = os.path.join(model_dir, model_file)
