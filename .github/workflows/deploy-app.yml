@@ -8,8 +8,12 @@ jobs:
     runs-on: ubuntu-latest
     env:
       APP_PATH: /var/www/sermadrid
+      DATA_PATH: /var/www/sermadrid/backend/app/app/worker/v1/data
       BACKEND_CORS_ORIGINS: '${{ vars.BACKEND_CORS_ORIGINS }}'
       DOMAIN_NAME: '${{ vars.DOMAIN_NAME }}'
+      AWS_DATA_PATH: data
+      AWS_REGION: '${{ vars.AWS_REGION }}'
+      AWS_S3_BUCKET_NAME: '${{ vars.AWS_S3_BUCKET_NAME }}'
 
     steps:
     - name: Checkout repository
@@ -32,6 +36,7 @@ jobs:
         username: ${{ secrets.DO_DROPLET_USER }}
         key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
         script: |
+          set -e
           sudo apt update
           sudo apt upgrade -y
     
@@ -56,28 +61,53 @@ jobs:
           fi
 
     - name: Add SSH key to known hosts
-      run: |
-        ssh-keyscan -H ${{ secrets.DO_DROPLET_IP }} >> ~/.ssh/known_hosts
+      run: ssh-keyscan -H ${{ secrets.DO_DROPLET_IP }} >> ~/.ssh/known_hosts
 
-    - name: Create remote directory if it doesn't exist
-      run: |
-        ssh ${{ secrets.DO_DROPLET_USER }}@${{ secrets.DO_DROPLET_IP }} "mkdir -p ${{ env.APP_PATH }}"
+    - name: Create remote directories
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.DO_DROPLET_IP }}
+        username: ${{ secrets.DO_DROPLET_USER }}
+        key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
+        script: |
+          mkdir -p ${{ env.APP_PATH }}
+          mkdir -p ${{ env.DATA_PATH }}
 
     - name: Copy files to server
-      run: |
-        scp -r ./* ${{ secrets.DO_DROPLET_USER }}@${{ secrets.DO_DROPLET_IP }}:${{ env.APP_PATH }}
+      run: scp -r ./* ${{ secrets.DO_DROPLET_USER }}@${{ secrets.DO_DROPLET_IP }}:${{ env.APP_PATH }}
 
     - name: Export environment variables
-      run: |
-        ssh ${{ secrets.DO_DROPLET_USER }}@${{ secrets.DO_DROPLET_IP }} "echo BACKEND_CORS_ORIGINS='$BACKEND_CORS_ORIGINS' > ${{ env.APP_PATH }}/.env"
-        ssh ${{ secrets.DO_DROPLET_USER }}@${{ secrets.DO_DROPLET_IP }} "echo DOMAIN_NAME=$DOMAIN_NAME >> ${{ env.APP_PATH }}/.env"
-        ssh ${{ secrets.DO_DROPLET_USER }}@${{ secrets.DO_DROPLET_IP }} "echo MAPBOX_TOKEN=${{ secrets.MAPBOX_TOKEN }} >> ${{ env.APP_PATH }}/.env"
-        ssh ${{ secrets.DO_DROPLET_USER }}@${{ secrets.DO_DROPLET_IP }} "echo CERTBOT_EMAIL=${{ secrets.CERTBOT_EMAIL }} >> ${{ env.APP_PATH }}/.env"
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.DO_DROPLET_IP }}
+        username: ${{ secrets.DO_DROPLET_USER }}
+        key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
+        script: |
+          echo BACKEND_CORS_ORIGINS='${{ env.BACKEND_CORS_ORIGINS }}' > ${{ env.APP_PATH }}/.env
+          echo DOMAIN_NAME=${{ env.DOMAIN_NAME }} >> ${{ env.APP_PATH }}/.env
+          echo MAPBOX_TOKEN=${{ secrets.MAPBOX_TOKEN }} >> ${{ env.APP_PATH }}/.env
+          echo CERTBOT_EMAIL=${{ secrets.CERTBOT_EMAIL }} >> ${{ env.APP_PATH }}/.env
 
-    - name: SSH and Deploy
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Download and copy data from S3
       run: |
-        ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=2 ${{ secrets.DO_DROPLET_USER }}@${{ secrets.DO_DROPLET_IP }} << 'ENDSSH'
-        docker-compose down
-        cd ${{ env.APP_PATH }}
-        docker-compose -f docker-compose.yml up -d --build
-        ENDSSH
+        aws s3 sync s3://${{ env.AWS_S3_BUCKET_NAME }}/${{ env.AWS_DATA_PATH }} ${{ runner.temp }}/${{ env.AWS_DATA_PATH }}
+        scp -r ${{ runner.temp }}/${{ env.AWS_DATA_PATH }}/* ${{ secrets.DO_DROPLET_USER }}@${{ secrets.DO_DROPLET_IP }}:${{ env.DATA_PATH }}
+
+    - name: Deploy
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.DO_DROPLET_IP }}
+        username: ${{ secrets.DO_DROPLET_USER }}
+        key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
+        script: |
+          set -e
+          cd ${{ env.APP_PATH }}
+          docker-compose down
+          docker-compose -f docker-compose.yml up -d --build

@@ -10,7 +10,7 @@
 
 ## ⚙️ Local deployment
 
-1. Create `.env` file in the repository root with the following variables
+1. Create `.env` file in the repository root with the following variables # TODO: Add include models
 
     ```
     BACKEND_CORS_ORIGINS=["http://localhost","http://0.0.0.0"]
@@ -44,7 +44,7 @@ $ docker stop $(docker ps -a -q)
 2. Create a Digital Ocean [API key](https://docs.digitalocean.com/reference/api/create-personal-access-token/)
 3. Create a Digital Ocean [SSH key](https://docs.digitalocean.com/reference/doctl/reference/compute/ssh-key/create/)
 4. Create an AWS account
-5. Create an AWS [access key](https://repost.aws/knowledge-center/create-access-key)
+5. Create an AWS [access key](https://repost.aws/knowledge-center/create-access-key) # TODO: Add give user AmazonS3 permissions
 6. Register a valid website domain via a domain registrar and [point to Digital Ocean name servers](https://docs.digitalocean.com/products/networking/dns/getting-started/dns-registrars/) from it
 7. Create the following Github Actions secret variables in the Github repository:
     - `DO_API_KEY_TOKEN`: Digital Ocean API key token
