@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       APP_PATH: /var/www/sermadrid
-      DATA_PATH: /var/www/sermadrid/backend/app/app/worker/v1/data
+      DATA_PATH: /var/www/sermadrid/backend/app/app/data
       BACKEND_CORS_ORIGINS: '${{ vars.BACKEND_CORS_ORIGINS }}'
       DOMAIN_NAME: '${{ vars.DOMAIN_NAME }}'
       AWS_DATA_PATH: data
@@ -109,5 +109,5 @@ jobs:
         script: |
           set -e
           cd ${{ env.APP_PATH }}
-          docker-compose down
+          docker-compose down --remove-orphans
           docker-compose -f docker-compose.yml up -d --build

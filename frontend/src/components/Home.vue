@@ -351,24 +351,7 @@ export default {
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }
-        const data = await response.json();
-        const taskId = data.task_id;
-
-        // Polling for the task result
-        let result;
-        while (!result) {
-          const resultResponse = await fetch(`/api/v1/items/result/${taskId}`);
-          if (resultResponse.status === 202) {
-            // Task is still pending
-            await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second before polling again
-          } else if (resultResponse.status === 200) {
-            // Task completed successfully
-            result = await resultResponse.json();
-          } else {
-            // Task failed
-            throw new Error('Task failed');
-          }
-        }
+        const result = await response.json();
 
         // Highlight the selected neighborhood when the result is shown
         if (this.clickedFeature) {
@@ -385,7 +368,7 @@ export default {
               type: 'fill',
               source: highlightSourceId,
               paint: {
-                'fill-color': '#90ee90', // light green color similar to the availability button but lighter and transparent
+                'fill-color': '#90ee90',
                 'fill-opacity': 0.5,
               },
             });

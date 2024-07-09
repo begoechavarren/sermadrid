@@ -1,14 +1,11 @@
 import random
 
-from app.app.core.celery_app import app, models, spaces_dict
-from app.app.schemas.output import ParkingResult
 from sermadrid.pipelines import SerMadridInferencePipeline
 
 
-@app.task
 def predict_parking_availability(
-    datetime_str: str, neighbourhood_id_str: str
-) -> ParkingResult:
+    datetime_str: str, neighbourhood_id_str: str, models: dict, spaces_dict: dict
+) -> dict:
     SERMADRID_INFERENCE = SerMadridInferencePipeline()
     MODEL = models.get(neighbourhood_id_str)
 

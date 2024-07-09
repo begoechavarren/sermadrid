@@ -14,42 +14,6 @@ services:
     networks:
       - app-network
 
-  celery:
-    build: 
-      context: ./backend
-      dockerfile: backend.dockerfile
-    command: celery -A app.app.core.celery_app.app worker --loglevel=info -E -c 4
-    environment:
-      - C_FORCE_ROOT=true
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-    volumes:
-      - ./backend/app:/code/app
-    depends_on:
-      - backend
-    networks:
-      - app-network
-
-  redis:
-    image: "redis:alpine"
-    ports:
-      - "6379:6379"
-    networks:
-      - app-network
-
-  flower:
-    image: mher/flower
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - FLOWER_PORT=5555
-    ports:
-      - "5555:5555"
-    depends_on:
-      - redis
-      - celery
-    networks:
-      - app-network
-
   frontend:
     build:
       context: ./frontend
