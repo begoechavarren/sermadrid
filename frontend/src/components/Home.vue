@@ -44,7 +44,7 @@
     <div class="about-icon" @click="goToAbout">
       <font-awesome-icon :icon="['fas', 'info-circle']" />
     </div>
-    <div v-if="showOutsideMessage" :class="{'outside-message': !isAddressCheck, 'centered-message': isAddressCheck}" :style="messageStyle">
+    <div v-if="showMessage" class="centered-message">
       {{ outsideMessage }}
     </div>
   </div>
@@ -90,7 +90,7 @@ export default {
       longitude: null,
       neighbourhood_id: null,
       clickedFeature: null,
-      showOutsideMessage: false,
+      showMessage: false,
       isAddressCheck: false,
       outsideMessage: '',
       messagePosition: { x: 0, y: 0 },
@@ -260,10 +260,11 @@ export default {
           this.address = placeName;
         }
 
-        this.showOutsideMessage = false;
+        this.showMessage = false;
         this.itemResult = null; // Clear previous result
       } else {
-        this.showOutsideMessage = true;
+        this.clearMessages(); // Clear any existing messages
+        this.showMessage = true;
         this.outsideMessage = 'Please select an address within the Madrid SER zone';
         this.clearMarker();
         this.clearHighlight();
@@ -288,7 +289,8 @@ export default {
       }
     },
     clearMessages() {
-      this.showOutsideMessage = false;
+      this.showMessage = false; // Ensure only one message is displayed
+      this.itemResult = null; // Clear the result message as well
     },
     clearMarker() {
       if (this.marker) {
@@ -320,17 +322,37 @@ export default {
     async getItem() {
       this.clearMessages(); // Clear any existing messages
       if (!this.address) {
-        this.showOutsideMessage = true;
+        this.showMessage = true;
         this.outsideMessage = 'Please select the address where you would like to park';
         this.isAddressCheck = true;
         return; // Exit the function early
       }
       if (this.neighbourhood_id === null) {
-        this.showOutsideMessage = true;
+        this.showMessage = true;
         this.outsideMessage = 'Please select an address within the Madrid SER zone';
         this.isAddressCheck = true;
         return; // Exit the function early
       }
+
+      // Check if the selected datetime is outside the SER zone hours
+      const date = new Date(this.datetime);
+      const day = date.getDay();
+      const hour = date.getHours();
+
+      // Check if it's out of SER zone schedule
+      if (day === 0 || 
+          // Check if it's Monday to Friday and outside 9am to 9pm
+          (day >= 1 && day <= 5 && (hour < 9 || hour >= 21)) ||
+          // Check if it's Saturday and after 3pm
+          (day === 6 && hour >= 15) ||
+          // Check if it's Sunday
+          (day === 7)) {
+        this.clearMessages(); // Clear any existing messages
+        this.showMessage = true; // Set the new message state
+        this.outsideMessage = 'Please select a time within the Madrid SER zone schedule';
+        return; // Exit the function early
+      }
+
       try {
         if (this.address) {
           const coords = await this.geocodeAddress(this.address);
@@ -339,7 +361,7 @@ export default {
         // Check if neighbourhood_id is set
         if (this.neighbourhood_id === null) {
           this.itemResult = 'Please select an address within the Madrid SER zone';
-          this.showOutsideMessage = true;
+          this.showMessage = true;
           this.outsideMessage = 'Please select an address within the Madrid SER zone';
           this.isAddressCheck = true;
           return; // Exit the function early
