@@ -319,6 +319,15 @@ export default {
           return l.toUpperCase();
         });
     },
+    getColorForAvailability(prediction) {
+      if (prediction <= 0.2) {
+        return '#FF0000'; // Red
+      } else if (prediction <= 0.4) {
+        return '#FFA500'; // Orange
+      } else {
+        return '#90EE90'; // Green
+      }
+    },
     async getItem() {
       this.clearMessages(); // Clear any existing messages
       if (!this.address) {
@@ -378,6 +387,7 @@ export default {
         // Highlight the selected neighborhood when the result is shown
         if (this.clickedFeature) {
           const highlightSourceId = 'highlight';
+          const fillColor = this.getColorForAvailability(result.prediction);
           if (this.map.getSource(highlightSourceId)) {
             this.map.getSource(highlightSourceId).setData(this.clickedFeature);
           } else {
@@ -390,11 +400,12 @@ export default {
               type: 'fill',
               source: highlightSourceId,
               paint: {
-                'fill-color': '#90ee90',
+                'fill-color': fillColor,
                 'fill-opacity': 0.5,
               },
             });
           }
+          this.map.setPaintProperty('highlight', 'fill-color', fillColor);
         }
 
         this.itemResult = `For the datetime ${this.datetime} and neighbourhood ${this.capitalizeWords(
