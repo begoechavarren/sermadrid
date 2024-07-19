@@ -1,5 +1,6 @@
 from typing import List
 
+import numpy as np
 import pandas as pd
 
 from sermadrid.models import CustomProphetModelNH
@@ -33,6 +34,6 @@ class SerMadridInferencePipeline:
         )
 
         if return_percentage:
-            predictions = 1 - (predictions / num_plazas)
+            predictions = np.maximum(0, 1 - (predictions / num_plazas))
 
         return predictions
