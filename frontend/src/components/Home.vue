@@ -291,6 +291,7 @@ export default {
     clearMessages() {
       this.showMessage = false; // Ensure only one message is displayed
       this.itemResult = null; // Clear the result message as well
+      this.clearHighlight(); // Clear neighborhood highlight
     },
     clearMarker() {
       if (this.marker) {
@@ -359,6 +360,7 @@ export default {
         this.clearMessages(); // Clear any existing messages
         this.showMessage = true; // Set the new message state
         this.outsideMessage = 'Please select a time within the Madrid SER zone schedule';
+        this.clearHighlight(); // Clear neighborhood highlight
         return; // Exit the function early
       }
 
