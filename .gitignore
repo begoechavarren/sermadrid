@@ -175,3 +175,6 @@ pnpm-debug.log*
 *.joblib
 *.pkl
 *.json
+
+# Terraform
+.terraform/
