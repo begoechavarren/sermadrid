@@ -11,7 +11,7 @@ jobs:
     env:
       AWS_S3_BUCKET_NAME: '${{ vars.AWS_S3_BUCKET_NAME }}'
       AWS_REGION: '${{ vars.AWS_REGION }}'
-      AWS_S3_DIRECTORY_NAME: 'terraform/mage-initial'
+      AWS_S3_DIRECTORY_NAME: 'terraform/mage-setup'
 
     steps:
     - name: Checkout repository
@@ -40,34 +40,10 @@ jobs:
         AWS_S3_BUCKET_NAME: ${{ env.AWS_S3_BUCKET_NAME }}
         AWS_REGION: ${{ env.AWS_REGION }}
         S3_DIRECTORY_NAME: ${{ env.AWS_S3_DIRECTORY_NAME }}
-
-    - name: Check and Create AWS S3 Bucket
-      run: |
-        aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-        aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-        if aws s3 ls "s3://$AWS_S3_BUCKET_NAME" 2>&1 | grep -q 'NoSuchBucket'; then
-            echo "Bucket does not exist. Creating bucket."
-            aws s3 mb "s3://$AWS_S3_BUCKET_NAME" --region "$AWS_REGION"
-          else
-            echo "Bucket exists."
-          fi
-        if ! aws s3api list-objects --bucket "$AWS_S3_BUCKET_NAME" --prefix "$AWS_S3_DIRECTORY_NAME/" | grep -q '"Key": "'$AWS_S3_DIRECTORY_NAME'/"; then
-            echo "Directory does not exist. Creating directory."
-            aws s3api put-object --bucket "$AWS_S3_BUCKET_NAME" --key "$AWS_S3_DIRECTORY_NAME/"
-          else
-              echo "Directory exists."
-          fi
-      env:
-        # TODO: Need for variables at step level?
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_S3_BUCKET_NAME: ${{ env.AWS_S3_BUCKET_NAME }}
-        AWS_REGION: ${{ env.AWS_REGION }}
-        S3_DIRECTORY_NAME: ${{ env.AWS_S3_DIRECTORY_NAME }}
   
     - name: Generate Terraform Backend
       run: |
-        cd infrastructure/mage-initial
+        cd infrastructure/mage-setup
         sed -e "s/AWS_S3_BUCKET_NAME/\"${AWS_S3_BUCKET_NAME}\"/" \
             -e "s/AWS_REGION/\"${AWS_REGION}\"/" \
             -e "s/AWS_ACCESS_KEY_ID/\"$AWS_ACCESS_KEY_ID\"/" \
@@ -87,11 +63,11 @@ jobs:
 
     - name: Initialize Terraform
       run: terraform init
-      working-directory: ./infrastructure/mage-initial
+      working-directory: ./infrastructure/mage-setup
 
     - name: Run Terraform apply
       run: terraform apply -auto-approve -var "aws_region=$AWS_REGION" -var "ecr_repository_name=sermadrid"
-      working-directory: ./infrastructure/mage-initial
+      working-directory: ./infrastructure/mage-setup
       env:
         AWS_S3_BUCKET_NAME: ${{ env.AWS_S3_BUCKET_NAME }}
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -111,7 +87,7 @@ jobs:
         echo "ECR_URI=${ECR_URI}" >> $GITHUB_ENV
         echo "ECR_URI=${ECR_URI}" >> $GITHUB_OUTPUT
         echo "ECR_URI has been set to: $ECR_URI"
-      working-directory: ./infrastructure/mage-initial
+      working-directory: ./infrastructure/mage-setup
       env:
         AWS_S3_BUCKET_NAME: ${{ env.AWS_S3_BUCKET_NAME }}
         AWS_REGION: ${{ env.AWS_REGION }}

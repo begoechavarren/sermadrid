@@ -67,12 +67,12 @@ variable "docker_image" {
 
 variable "ecs_task_cpu" {
   description = "ECS task cpu"
-  default     = 4096
+  default     = 1024
 }
 
 variable "ecs_task_memory" {
   description = "ECS task memory"
-  default     = 8192
+  default     = 2048
 }
 
 variable "public_subnets" {
