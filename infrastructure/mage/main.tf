@@ -118,10 +118,15 @@ resource "aws_ecs_service" "aws-ecs-service" {
   name                 = "${var.app_name}-${var.app_environment}-ecs-service"
   cluster              = aws_ecs_cluster.aws-ecs-cluster.id
   task_definition      = "${aws_ecs_task_definition.aws-ecs-task.family}:${max(aws_ecs_task_definition.aws-ecs-task.revision, data.aws_ecs_task_definition.main.revision)}"
-  launch_type          = "FARGATE_SPOT"
   scheduling_strategy  = "REPLICA"
   desired_count        = 1
   force_new_deployment = true
+
+  capacity_provider_strategy {
+    capacity_provider = "FARGATE_SPOT"
+    weight            = 1
+  }
+
 
   network_configuration {
     subnets          = aws_subnet.public.*.id
