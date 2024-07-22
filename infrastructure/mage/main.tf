@@ -39,6 +39,7 @@ data "template_file" "env_vars" {
 
 resource "aws_ecs_task_definition" "aws-ecs-task" {
   family = "${var.app_name}-task"
+  network_mode = "awsvpc"
 
   container_definitions = <<DEFINITION
   [
@@ -70,7 +71,6 @@ resource "aws_ecs_task_definition" "aws-ecs-task" {
       ],
       "cpu": ${var.ecs_task_cpu},
       "memory": ${var.ecs_task_memory},
-      "networkMode": "awsvpc",
       "ulimits": [
         {
           "name": "nofile",
@@ -89,8 +89,7 @@ resource "aws_ecs_task_definition" "aws-ecs-task" {
   ]
   DEFINITION
 
-  requires_compatibilities = ["FARGATE"]
-  network_mode             = "awsvpc"
+  requires_compatibilities = ["EC2", "FARGATE"]
   memory                   = var.ecs_task_memory
   cpu                      = var.ecs_task_cpu
   execution_role_arn       = aws_iam_role.ecsTaskExecutionRole.arn
@@ -109,9 +108,8 @@ resource "aws_ecs_task_definition" "aws-ecs-task" {
     Name        = "${var.app_name}-ecs-td"
     Environment = var.app_environment
   }
-
-  # depends_on = [aws_lambda_function.terraform_lambda_func]
 }
+
 
 data "aws_ecs_task_definition" "main" {
   task_definition = aws_ecs_task_definition.aws-ecs-task.family
@@ -148,11 +146,10 @@ resource "aws_security_group" "service_security_group" {
   vpc_id = aws_vpc.aws-vpc.id
 
   ingress {
-    from_port       = 6789
-    to_port         = 6789
-    protocol        = "tcp"
-    cidr_blocks     = ["${chomp(data.http.myip.response_body)}/32"]
-    security_groups = [aws_security_group.load_balancer_security_group.id]
+    from_port   = 6789
+    to_port     = 6789
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -168,3 +165,4 @@ resource "aws_security_group" "service_security_group" {
     Environment = var.app_environment
   }
 }
+

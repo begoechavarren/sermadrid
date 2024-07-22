@@ -1,0 +1,9 @@
+terraform {
+  backend "s3" {
+    bucket     = AWS_S3_BUCKET_NAME
+    key        = "terraform/mage/terraform.tfstate"
+    region     = AWS_REGION
+    access_key = AWS_ACCESS_KEY_ID
+    secret_key = AWS_SECRET_KEY
+  }
+}

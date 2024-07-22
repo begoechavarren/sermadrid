@@ -21,7 +21,7 @@ variable "app_count" {
 variable "aws_region" {
   type        = string
   description = "AWS Region"
-  default     = "eu-west-2"
+  default     = "eu-west-3"
 }
 
 variable "aws_cloudwatch_retention_in_days" {
@@ -87,7 +87,7 @@ variable "private_subnets" {
 
 variable "availability_zones" {
   description = "List of availability zones"
-  default     = ["eu-west-2a", "eu-west-2b", "eu-west-2c"]
+  default     = ["eu-west-3a", "eu-west-3b", "eu-west-3c"]
 }
 
 variable "enable_ci_cd" {
