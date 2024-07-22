@@ -11,6 +11,7 @@ jobs:
       AWS_S3_BUCKET_NAME: '${{ vars.AWS_S3_BUCKET_NAME }}'
       AWS_REGION: '${{ vars.AWS_REGION }}'
       DOMAIN_NAME: '${{ vars.DOMAIN_NAME }}'
+      AWS_S3_DIRECTORY_NAME: 'terraform/backend'
 
     steps:
     - name: Checkout repository
@@ -26,12 +27,19 @@ jobs:
           else
             echo "Bucket exists."
           fi
+        if ! aws s3api list-objects --bucket "$AWS_S3_BUCKET_NAME" --prefix "$AWS_S3_DIRECTORY_NAME/" | grep -q '"Key": "'$AWS_S3_DIRECTORY_NAME'/""'; then
+          echo "Directory does not exist. Creating directory."
+            aws s3api put-object --bucket "$AWS_S3_BUCKET_NAME" --key "$AWS_S3_DIRECTORY_NAME/"
+          else
+              echo "Directory exists."
+          fi
       env:
         # TODO: Need for variables at step level?
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_S3_BUCKET_NAME: ${{ env.AWS_S3_BUCKET_NAME }}
         AWS_REGION: ${{ env.AWS_REGION }}
+        S3_DIRECTORY_NAME: ${{ env.AWS_S3_DIRECTORY_NAME }}
 
     - name: Generate Terraform Backend
       # TODO: May I use locals instead?
