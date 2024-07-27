@@ -1,74 +1,53 @@
-# Apache Software License 2.0
-#
-# Copyright (c) ZenML GmbH 2024. All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
+from typing import Tuple
 
-from typing import List, Optional
-
+import pandas as pd
 from zenml import pipeline
 from zenml.logger import get_logger
 
-from steps import (
-    data_loader,
-    data_preprocessor,
-    data_splitter,
+from steps.feature_engineering.data_aggregator import data_aggregator
+from steps.feature_engineering.data_loader import (
+    parkings_data_loader,
+    spaces_data_loader,
 )
+from steps.feature_engineering.data_preprocessor import (
+    parkings_data_preprocessor,
+    spaces_data_preprocessor,
+)
+from steps.feature_engineering.data_tuner import data_tuner
 
 logger = get_logger(__name__)
 
 
 @pipeline
-def feature_engineering(
-    test_size: float = 0.2,
-    drop_na: Optional[bool] = None,
-    normalize: Optional[bool] = None,
-    drop_columns: Optional[List[str]] = None,
-    target: Optional[str] = "target",
-    random_state: int = 17,
-):
+def feature_engineering() -> Tuple[pd.DataFrame, dict]:
     """
     Feature engineering pipeline.
 
-    This is a pipeline that loads the data, processes it and splits
-    it into train and test sets.
-
-    Args:
-        test_size: Size of holdout set for training 0.0..1.0
-        drop_na: If `True` NA values will be removed from dataset
-        normalize: If `True` dataset will be normalized with MinMaxScaler
-        drop_columns: List of columns to drop from dataset
-        target: Name of target column in dataset
-        random_state: Random state to configure the data loader
+    This is a pipeline that loads the data and processes it.
 
     Returns:
-        The processed datasets (dataset_trn, dataset_tst).
+        The processed parkings dataset (raw_ser_df).
+        The processed spaces dict (spaces_clean).
     """
-    # Link all the steps together by calling them and passing the output
-    # of one step as the input of the next step.
-    raw_data = data_loader(random_state=random_state, target=target)
-    dataset_trn, dataset_tst = data_splitter(
-        dataset=raw_data,
-        test_size=test_size,
+    raw_ser_df = parkings_data_loader(
+        bucket_name="sermadrid",
+        object_key="data/input/parkings/",
     )
-    dataset_trn, dataset_tst, _ = data_preprocessor(
-        dataset_trn=dataset_trn,
-        dataset_tst=dataset_tst,
-        drop_na=drop_na,
-        normalize=normalize,
-        drop_columns=drop_columns,
-        target=target,
-        random_state=random_state,
+    raw_spaces_df = spaces_data_loader(
+        bucket_name="sermadrid",
+        object_key="data/input/spaces/2024.csv",
     )
-    return dataset_trn, dataset_tst
+    ser_df = parkings_data_preprocessor(
+        raw_ser_df=raw_ser_df,
+    )
+    agg_ser_df = data_aggregator(
+        ser_df=ser_df,
+    )
+    spaces_grouped_df, spaces_clean = spaces_data_preprocessor(
+        raw_spaces_df=raw_spaces_df,
+    )
+    final_agg_ser_df = data_tuner(
+        agg_ser_df=agg_ser_df,
+        spaces_grouped_df=spaces_grouped_df,
+    )
+    return final_agg_ser_df, spaces_clean

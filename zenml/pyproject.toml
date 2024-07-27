@@ -16,6 +16,8 @@ ruff = ">=0.1.7"
 zenml = { extras = ["server", "templates"], version = "0.62.0" }
 pyarrow = ">=13.0.0"
 scikit-learn = "<=1.3"
+boto3 = "^1.34.100"
+tqdm = "^4.66.4"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "3.5.0"
