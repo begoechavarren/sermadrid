@@ -6,6 +6,7 @@ import pandas as pd
 from sermadrid.models import CustomProphetModelNH
 
 
+# TODO: Move to backend?
 class SerMadridInferencePipeline:
     def _inference(
         self,

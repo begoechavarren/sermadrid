@@ -1,20 +1,22 @@
+from typing import Optional
+from uuid import UUID
+
 import click
 import zenml
 from zenml.client import Client
 from zenml.logger import get_logger
 
 from pipelines.feature_engineering import feature_engineering
+from pipelines.training import training
 
 logger = get_logger(__name__)
 
 
 @click.command(
     help="""
-ZenML Starter project.
+ZenML sermadrid project.
 
-Run the ZenML starter project with basic options.
-
-Examples:
+Run the ZenML sermadrid pipelomes:
 
   \b
   # Run the feature engineering pipeline
@@ -27,10 +29,6 @@ Examples:
   \b
   # Run the training pipeline with versioned artifacts
     python run.py --training-pipeline --train-dataset-version-name=1 --test-dataset-version-name=1
-
-  \b
-  # Run the inference pipeline
-    python run.py --inference-pipeline
 
 """
 )
@@ -46,13 +44,24 @@ Examples:
     type=click.STRING,
     help="The name of the spaces dict produced by feature engineering.",
 )
-# @click.option(
-#     "--train-dataset-version-name",
-#     default=None,
-#     type=click.STRING,
-#     help="Version of the train dataset produced by feature engineering. "
-#     "If not specified, a new version will be created.",
-# )
+@click.option(
+    "--trained-models-name",
+    default="trained_models",
+    type=click.STRING,
+    help="The name of the trained models dict produced by training.",
+)
+@click.option(
+    "--final-agg-ser-df-version-id",
+    default=None,
+    type=click.STRING,
+    help="ID of the final aggregated SER dataset version. If not specified, the latest version will be used.",
+)
+@click.option(
+    "--spaces-clean-version-id",
+    default=None,
+    type=click.STRING,
+    help="ID of the spaces dict version. If not specified, the latest version will be used.",
+)
 # @click.option(
 #     "--test-dataset-name",
 #     default="dataset_tst",
@@ -72,18 +81,12 @@ Examples:
     default=False,
     help="Whether to run the pipeline that creates the dataset.",
 )
-# @click.option(
-#     "--training-pipeline",
-#     is_flag=True,
-#     default=False,
-#     help="Whether to run the pipeline that trains the model.",
-# )
-# @click.option(
-#     "--inference-pipeline",
-#     is_flag=True,
-#     default=False,
-#     help="Whether to run the pipeline that performs inference.",
-# )
+@click.option(
+    "--training-pipeline",
+    is_flag=True,
+    default=False,
+    help="Whether to run the pipeline that trains the model.",
+)
 @click.option(
     "--no-cache",
     is_flag=True,
@@ -93,12 +96,11 @@ Examples:
 def main(
     final_agg_ser_df_name: str = "tuned_ser_df",
     spaces_clean_name: str = "spaces_clean",
-    # train_dataset_version_name: Optional[str] = None,
-    # test_dataset_name: str = "dataset_tst",
-    # test_dataset_version_name: Optional[str] = None,
+    trained_models_name: str = "trained_models",
+    final_agg_ser_df_version_id: Optional[UUID] = None,
+    spaces_clean_version_id: Optional[UUID] = None,
     feature_pipeline: bool = False,
-    # training_pipeline: bool = False,
-    # inference_pipeline: bool = False,
+    training_pipeline: bool = False,
     no_cache: bool = False,
 ):
     """Main entry point for the pipeline execution.
@@ -145,71 +147,25 @@ def main(
             f"Name: {spaces_clean_name}, Version Name: {spaces_clean_artifact.version}"
         )
 
-    # # Execute Training Pipeline
-    # if training_pipeline:
-    #     run_args_train = {}
-
-    #     # If train_dataset_version_name is specified, use versioned artifacts
-    #     if train_dataset_version_name or test_dataset_version_name:
-    #         # However, both train and test dataset versions must be specified
-    #         assert (
-    #             train_dataset_version_name is not None
-    #             and test_dataset_version_name is not None
-    #         )
-    #         train_dataset_artifact_version = client.get_artifact_version(
-    #             train_dataset_name, train_dataset_version_name
-    #         )
-    #         # If train dataset is specified, test dataset must be specified
-    #         test_dataset_artifact_version = client.get_artifact_version(
-    #             test_dataset_name, test_dataset_version_name
-    #         )
-    #         # Use versioned artifacts
-    #         run_args_train["train_dataset_id"] = train_dataset_artifact_version.id
-    #         run_args_train["test_dataset_id"] = test_dataset_artifact_version.id
-
-    #     # Run the SGD pipeline
-    #     pipeline_args = {}
-    #     if no_cache:
-    #         pipeline_args["enable_cache"] = False
-    #     pipeline_args["config_path"] = os.path.join(config_folder, "training_sgd.yaml")
-    #     print("Type of training_pipeline", type(training))
-    #     training.with_options(**pipeline_args)(**run_args_train)
-    #     logger.info("Training pipeline with SGD finished successfully!\n\n")
-
-    #     # Run the RF pipeline
-    #     pipeline_args = {}
-    #     if no_cache:
-    #         pipeline_args["enable_cache"] = False
-    #     pipeline_args["config_path"] = os.path.join(config_folder, "training_rf.yaml")
-    #     training.with_options(**pipeline_args)(**run_args_train)
-    #     logger.info("Training pipeline with RF finished successfully!\n\n")
-
-    # if inference_pipeline:
-    #     run_args_inference = {}
-    #     pipeline_args = {"enable_cache": False}
-    #     pipeline_args["config_path"] = os.path.join(config_folder, "inference.yaml")
-
-    #     # Configure the pipeline
-    #     inference_configured = inference.with_options(**pipeline_args)
-
-    #     # Fetch the production model
-    #     with open(pipeline_args["config_path"], "r") as f:
-    #         config = yaml.load(f, Loader=yaml.SafeLoader)
-    #     zenml_model = client.get_model_version(
-    #         config["model"]["name"], config["model"]["version"]
-    #     )
-    #     preprocess_pipeline_artifact = zenml_model.get_artifact("preprocess_pipeline")
-
-    #     # Use the metadata of feature engineering pipeline artifact
-    #     #  to get the random state and target column
-    #     random_state = preprocess_pipeline_artifact.run_metadata["random_state"].value
-    #     target = preprocess_pipeline_artifact.run_metadata["target"].value
-    #     run_args_inference["random_state"] = random_state
-    #     run_args_inference["target"] = target
-
-    #     # Run the pipeline
-    #     inference_configured(**run_args_inference)
-    #     logger.info("Inference pipeline finished successfully!")
+    # Execute Training Pipeline
+    if training_pipeline:
+        # Run the RF pipeline
+        # pipeline_args = {}
+        # if no_cache:
+        #     pipeline_args["enable_cache"] = False
+        # pipeline_args["config_path"] = os.path.join(config_folder, "training_rf.yaml")
+        # training.with_options(**pipeline_args)(**run_args_train)
+        training(
+            final_agg_ser_df_version_id=final_agg_ser_df_version_id,
+            spaces_clean_version_id=spaces_clean_version_id,
+        )
+        trained_models_artifact = client.get_artifact_version(trained_models_name)
+        logger.info("Training pipeline finished successfully!\n\n")
+        logger.info(
+            "The latest training pipeline produced the following "
+            f"artifact: \n\n1. Trained models - Name: {trained_models_name}, "
+            f"Version Name: {trained_models_artifact.version}"
+        )
 
 
 if __name__ == "__main__":

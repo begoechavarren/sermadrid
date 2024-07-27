@@ -1,20 +1,3 @@
-# Apache Software License 2.0
-#
-# Copyright (c) ZenML GmbH 2024. All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-
 from typing import Optional
 from uuid import UUID
 
@@ -22,54 +5,63 @@ from zenml import pipeline
 from zenml.client import Client
 from zenml.logger import get_logger
 
-from pipelines import (
-    feature_engineering,
-)
-from steps import model_evaluator, model_promoter, model_trainer
+from steps.training.model_promoter import model_promoter
+from steps.training.model_trainer import model_trainer
 
 logger = get_logger(__name__)
 
 
 @pipeline
 def training(
-    train_dataset_id: Optional[UUID] = None,
-    test_dataset_id: Optional[UUID] = None,
-    target: Optional[str] = "target",
-    model_type: Optional[str] = "sgd",
+    final_agg_ser_df_version_id: Optional[UUID] = None,
+    spaces_clean_version_id: Optional[UUID] = None,
 ):
-    """
-    Model training pipeline.
-
-    This is a pipeline that loads the data from a preprocessing pipeline,
-    trains a model on it and evaluates the model. If it is the first model
-    to be trained, it will be promoted to production. If not, it will be
-    promoted only if it has a higher accuracy than the current production
-    model version.
+    """Models training pipeline.
 
     Args:
-        train_dataset_id: ID of the train dataset produced by feature engineering.
-        test_dataset_id: ID of the test dataset produced by feature engineering.
-        target: Name of target column in dataset.
-        model_type: The type of model to train.
+        final_agg_ser_df_id: ID of the final_agg_ser_df_id dataset produced by feature engineering.
+        spaces_clean_version_id: ID of the spaces_clean dataset produced by feature engineering
+
+    Returns:
+        The trained models dict (trained_models).
     """
-    # Link all the steps together by calling them and passing the output
-    # of one step as the input of the next step.
-
-    # Execute Feature Engineering Pipeline
-    if train_dataset_id is None or test_dataset_id is None:
-        dataset_trn, dataset_tst = feature_engineering()
+    client = Client()
+    if final_agg_ser_df_version_id is None:
+        # Fetch the latest version
+        artifact_versions = client.list_artifact_versions(
+            name="tuned_ser_df", sort_by="created", size=1
+        )
+        if not artifact_versions:
+            raise ValueError("No versions found for 'tuned_ser_df' artifact")
+        final_agg_ser_df_version = artifact_versions[0]
     else:
-        client = Client()
-        dataset_trn = client.get_artifact_version(name_id_or_prefix=train_dataset_id)
-        dataset_tst = client.get_artifact_version(name_id_or_prefix=test_dataset_id)
+        # Fetch the specified version
+        final_agg_ser_df_version = client.get_artifact_version(
+            final_agg_ser_df_version_id
+        )
 
-    model = model_trainer(dataset_trn=dataset_trn, target=target, model_type=model_type)
+    if spaces_clean_version_id is None:
+        # Fetch the latest version
+        artifact_versions = client.list_artifact_versions(
+            name="spaces_clean", sort_by="created", size=1
+        )
+        if not artifact_versions:
+            raise ValueError("No versions found for 'spaces_clean' artifact")
+        spaces_clean_version = artifact_versions[0]
+    else:
+        # Fetch the specified version
+        spaces_clean_version = client.get_artifact_version(spaces_clean_version_id)
 
-    acc = model_evaluator(
-        model=model,
-        dataset_trn=dataset_trn,
-        dataset_tst=dataset_tst,
-        target=target,
+    trained_models = model_trainer(
+        final_agg_ser_df_version_id=final_agg_ser_df_version.id,
     )
 
-    model_promoter(accuracy=acc)
+    # TODO: Model promoter depending on model_evaluator output
+    model_promoter(
+        trained_models=trained_models,
+        spaces_clean_version_id=spaces_clean_version.id,
+        bucket_name="sermadrid",
+        # TODO: Rename to output/models/
+        models_object_key="data/models",
+        spaces_object_key="data/input/spaces_clean.json",
+    )

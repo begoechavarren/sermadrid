@@ -23,9 +23,12 @@ class CustomProphetModelNH:
         agg_df_nh = agg_df[agg_df["barrio_id"] == self.barrio_id]
         return agg_df_nh
 
-    def _build_model(self) -> Prophet:
-        self.model = Prophet(daily_seasonality=True)
-        self.model.add_seasonality(name="monthly", period=30.5, fourier_order=5)
+    def _build_model(self, **params) -> Prophet:
+        custom_daily_fourier = params.pop("custom_daily_fourier", 8)
+        self.model = Prophet(**params)
+        self.model.add_seasonality(
+            name="custom_daily", period=1, fourier_order=custom_daily_fourier
+        )
 
     def train(
         self,
@@ -33,7 +36,17 @@ class CustomProphetModelNH:
         y_train: np.ndarray = None,
         agg_df: pd.DataFrame = None,
     ) -> None:
-        self._build_model()
+        # TODO: Implement hyperparameter tuning?
+        params = {
+            "changepoint_prior_scale": 0.001,
+            "seasonality_prior_scale": 10,
+            "seasonality_mode": "additive",
+            "yearly_seasonality": "auto",
+            "weekly_seasonality": "auto",
+            "daily_seasonality": True,
+            "custom_daily_fourier": 8,
+        }
+        self._build_model(**params)
         nh_agg_df = self._create_nh_agg_df(agg_df)
         if y_train is None:
             y_train = nh_agg_df["active_tickets"].values
