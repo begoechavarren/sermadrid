@@ -1,7 +1,7 @@
 from typing import Tuple
 
 import pandas as pd
-from zenml import pipeline
+from zenml import Model, pipeline
 from zenml.logger import get_logger
 
 from steps.feature_engineering.data_aggregator import data_aggregator
@@ -16,6 +16,13 @@ from steps.feature_engineering.data_preprocessor import (
 from steps.feature_engineering.data_tuner import data_tuner
 
 logger = get_logger(__name__)
+
+model = Model(
+    name="sermadrid",
+    version=None,
+    license="Apache 2.0",
+    description="A time series model for the sermadrid project.",
+)
 
 
 @pipeline

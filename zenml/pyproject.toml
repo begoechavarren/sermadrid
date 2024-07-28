@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "sermadrid-zeml"
 version = "0.1.0"
-description = "ZenML training parking for the sermadrid project."
+description = "ZenML training pipelines for the sermadrid project."
 authors = ["Begoña Echavarren Sanchez <begona.echavarren@gmail.com>"]
 package-mode = false
 
