@@ -21,11 +21,23 @@ resource "helm_release" "cert-manager" {
 
 resource "null_resource" "wait_for_cert_manager" {
   provisioner "local-exec" {
-    command = "sleep 60" # Wait for 60 seconds
+    command = "sleep 180" # Wait for 180 seconds
   }
 
   depends_on = [
     resource.helm_release.cert-manager
+  ]
+}
+
+resource "null_resource" "wait_for_cert_manager_crd" {
+  provisioner "local-exec" {
+    command = <<EOT
+      kubectl wait --for=condition=Established --timeout=300s crd/clusterissuers.cert-manager.io
+    EOT
+  }
+
+  depends_on = [
+    null_resource.wait_for_cert_manager
   ]
 }
 
@@ -51,6 +63,6 @@ spec:
           class: nginx
 YAML    
   depends_on = [
-    resource.null_resource.wait_for_cert_manager
+    resource.null_resource.wait_for_cert_manager_crd
   ]
 }

@@ -29,7 +29,7 @@ variable "enable_orchestrator_sagemaker" {
 }
 variable "enable_experiment_tracker_mlflow" {
   description = "Enable MLflow deployment"
-  default     = false
+  default     = true
 }
 variable "enable_model_deployer_seldon" {
   description = "Enable Seldon deployment"
