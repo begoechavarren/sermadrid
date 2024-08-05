@@ -16,10 +16,11 @@ resource "aws_eks_node_group" "nodegroup" {
 
   scaling_config {
     desired_size = 2
-    max_size     = 4
+    max_size     = 7
     min_size     = 1
   }
-  instance_types = ["t3.medium"]
+  # capacity_type  = "SPOT"
+  instance_types = ["t3.medium"] # TODO: Change to t3.large if needed
 
 
   update_config {

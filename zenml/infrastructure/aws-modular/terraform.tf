@@ -37,7 +37,7 @@ terraform {
   }
 
   backend "s3" {
-    bucket = "sermadrid-zenml" # TODO: Parametrise
+    bucket = "zenml-tf"
     region = "eu-west-3"
     key    = "terraform/state"
   }

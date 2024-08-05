@@ -46,15 +46,15 @@ variable "enable_zenml" {
 
 variable "repo_name" {
   description = "The name of the container repository"
-  default     = ""
+  default     = "zenml"
 }
 variable "bucket_name" {
   description = "The name of the S3 bucket"
-  default     = ""
+  default     = "zenml-sermadrid"
 }
 variable "region" {
   description = "The region to deploy resources to"
-  default     = "eu-west-1"
+  default     = "eu-west-3"
 }
 
 # variables for the MLflow tracking server
@@ -75,12 +75,12 @@ variable "mlflow-username" {
 }
 variable "mlflow-password" {
   description = "The password for the MLflow Tracking Server"
-  default     = "supersafepassword"
+  default     = "supersafepassword" # TODO: Parameterize
   type        = string
 }
 variable "mlflow_bucket" {
   description = "The name of the S3 bucket to use for MLflow artifact store"
-  default     = ""
+  default     = "mlflow"
 }
 
 # variables for creating a ZenML stack configuration file

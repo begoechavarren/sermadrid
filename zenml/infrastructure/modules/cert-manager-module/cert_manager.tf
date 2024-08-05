@@ -21,7 +21,7 @@ resource "helm_release" "cert-manager" {
 
 resource "null_resource" "wait_for_cert_manager" {
   provisioner "local-exec" {
-    command = "sleep 180" # Wait for 180 seconds
+    command = "sleep 600"
   }
 
   depends_on = [

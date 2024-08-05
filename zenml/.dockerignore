@@ -1,0 +1,11 @@
+**
+!sermadrid/
+!pyproject.toml
+!poetry.lock
+!Dockerfile
+!run.py
+!steps/
+!pipelines/
+!configs/
+!utils/
+!README.md

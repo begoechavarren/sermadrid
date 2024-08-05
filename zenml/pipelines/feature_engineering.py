@@ -2,6 +2,7 @@ from typing import Tuple
 
 import pandas as pd
 from zenml import Model, pipeline
+from zenml.config import DockerSettings
 from zenml.logger import get_logger
 
 from steps.feature_engineering.data_aggregator import data_aggregator
@@ -24,8 +25,13 @@ model = Model(
     description="A time series model for the sermadrid project.",
 )
 
+docker_settings = DockerSettings(
+    dockerfile="./Dockerfile",
+    build_context_root=".",
+)
 
-@pipeline
+
+@pipeline(settings={"docker": docker_settings})
 def feature_engineering() -> Tuple[pd.DataFrame, dict]:
     """
     Feature engineering pipeline.
