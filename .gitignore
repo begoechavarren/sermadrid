@@ -183,3 +183,6 @@ data/
 *.tfstate
 terraform.tfstate.backup
 .github/workflows/build_and_deploy_to_aws_ecs.yml
+
+# ZenML
+zenml/.zen/config.yaml

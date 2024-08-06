@@ -23,18 +23,15 @@ def parkings_data_loader(
     Returns:
         The dataset artifact as Pandas DataFrame.
     """
+    logger.info(f"Loading parking data from S3 bucket: {bucket_name}/{object_key}")
 
     s3 = boto3.client("s3")
-
     response = s3.list_objects_v2(Bucket=bucket_name, Prefix=object_key)
     csv_files = [
         content["Key"]
         for content in response.get("Contents", [])
         if content["Key"].endswith(".csv")
     ]
-    logger.info(f"CSV files found: {csv_files}")
-
-    logger.info("Sorting CSV files...")
     csv_files.sort()
 
     def standardize_columns(df):
@@ -46,15 +43,11 @@ def parkings_data_loader(
         df.rename(columns=replacements, inplace=True)
         return df
 
-    dfs = []
-    logger.info("Loading CSV files...")
-    # TODO: Remove the slicing
-    for file in csv_files[:2]:
+    ser_dfs = []
+    for file in csv_files[:2]:  # TODO: Remove the slicing
         logger.info(f"Downloading {file}...")
         obj = s3.get_object(Bucket=bucket_name, Key=file)
         data = obj["Body"].read().decode("utf-8")
-
-        logger.info("Defining delimiter...")
         lines = data.split("\n")
         first_line = lines[0]
         second_line = lines[1]
@@ -68,14 +61,11 @@ def parkings_data_loader(
             )
         corrected_data = first_line + "\n" + second_line + "\n" + rest_of_file
         corrected_data_io = StringIO(corrected_data)
-
-        logger.info(f"Reading {file}...")
         df = pd.read_csv(corrected_data_io, delimiter=delimiter, low_memory=False)
         df = standardize_columns(df)
-        dfs.append(df)
+        ser_dfs.append(df)
 
-    logger.info("Concatenating CSV files...")
-    ser_df = pd.concat(dfs, ignore_index=True)
+    ser_df = pd.concat(ser_dfs, ignore_index=True)
     return ser_df
 
 

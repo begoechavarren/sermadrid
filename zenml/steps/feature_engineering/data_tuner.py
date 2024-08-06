@@ -14,7 +14,7 @@ def data_tuner(
     agg_ser_df: pd.DataFrame,
     spaces_grouped_df: pd.DataFrame,
 ) -> Annotated[pd.DataFrame, "tuned_ser_df"]:
-    """Data tunning step.
+    """Data tuning step.
 
     This step processes the aggregated dataset and tunes it to prepare it for model training.
 
@@ -25,15 +25,14 @@ def data_tuner(
         The tuned dataset (tuned_ser_df).
     """
 
-    # TODO: Remove nested function
-    def fix_active_tickets(row, spaces_grouped_df, max_active_tickets: dict):
+    def _fix_active_tickets(row, spaces_grouped_df, max_active_tickets: dict):
         barrio_id = row.barrio_id
         hour = row.name.hour
         active_tickets = row.active_tickets
 
         barrio_data = spaces_grouped_df[spaces_grouped_df["barrio_id"] == barrio_id]
         if barrio_data.empty:
-            return active_tickets  # Return original value if barrio_id not found
+            return active_tickets  # Return original value if `barrio_id` not found
 
         num_plazas_verdes_barrio = barrio_data["num_plazas_verdes"].iloc[0]
         num_plazas_azules_barrio = barrio_data["num_plazas_azules"].iloc[0]
@@ -71,19 +70,18 @@ def data_tuner(
             delta = num_plazas_verdes_barrio - max_active_tickets_barrio
             return active_tickets + delta
 
-    # Create the new DataFrame
-    tuned_ser_df = agg_ser_df.copy()
-
-    # Apply the fix_active_tickets function
+    # Create the new DataFrame and apply the `fix_active_tickets` function
     max_active_tickets = (
-        tuned_ser_df.groupby("barrio_id")["active_tickets"]
+        agg_ser_df.groupby("barrio_id")["active_tickets"]
         .quantile(1)
         .sort_values(ascending=False)
         .to_dict()
     )
-    tuned_ser_df["active_tickets"] = tuned_ser_df.progress_apply(
-        lambda row: fix_active_tickets(row, spaces_grouped_df, max_active_tickets),
-        axis=1,
+    tuned_ser_df = agg_ser_df.assign(
+        active_tickets=lambda df: df.progress_apply(
+            lambda row: _fix_active_tickets(row, spaces_grouped_df, max_active_tickets),
+            axis=1,
+        )
     )
 
     return tuned_ser_df
