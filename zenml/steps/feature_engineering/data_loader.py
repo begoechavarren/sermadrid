@@ -1,92 +1,58 @@
-from io import StringIO
-
-import boto3
 import pandas as pd
 from typing_extensions import Annotated
 from zenml import step
 from zenml.logger import get_logger
 
+from utils.config import get_data_paths
+from utils.data_loader import standardize_parking_columns
+from utils.data_sources import get_data_source
+
 logger = get_logger(__name__)
 
+DATA_SOURCE = get_data_source()
+PARKINGS_DATA_PATH, SPACES_DATA_PATH = get_data_paths()
+
 
 @step
-def parkings_data_loader(
-    bucket_name: str,
-    object_key: str,
-) -> Annotated[pd.DataFrame, "raw_ser_df"]:
-    """Load the parking data from S3 bucket.
+def parkings_data_loader() -> Annotated[pd.DataFrame, "raw_ser_df"]:
+    """
+    Load the parking data from the configured data source, in
+    an agnostic way to the data source.
 
     Args:
-        bucket_name: Name of the S3 bucket where the data is stored.
-        object_key: Key of the object in the S3 bucket.
+        path: Path where the parkings data is stored.
+
+    Returns:
+        The parkings dataset as a Pandas DataFrame.
+    """
+    csv_file_paths = DATA_SOURCE.list_csv_files(PARKINGS_DATA_PATH)
+
+    dfs = []
+    for file_path in csv_file_paths[:2]:  # TODO: Remove slicing
+        logger.info(f"Loading {file_path}...")
+        df = DATA_SOURCE.load_csv(
+            file_path=file_path,
+            delimiter=";",
+            encoding="UTF-8",
+        )
+        df = standardize_parking_columns(df)
+        dfs.append(df)
+
+    return pd.concat(dfs, ignore_index=True)
+
+
+@step
+def spaces_data_loader() -> Annotated[pd.DataFrame, "raw_spaces_df"]:
+    """Load the spaces data from the configured data source, in
+
+    Args:
+        file_path: Path where the spaces data is stored.
 
     Returns:
         The dataset artifact as Pandas DataFrame.
     """
-    logger.info(f"Loading parking data from S3 bucket: {bucket_name}/{object_key}")
-
-    s3 = boto3.client("s3")
-    response = s3.list_objects_v2(Bucket=bucket_name, Prefix=object_key)
-    csv_files = [
-        content["Key"]
-        for content in response.get("Contents", [])
-        if content["Key"].endswith(".csv")
-    ]
-    csv_files.sort()
-
-    def standardize_columns(df):
-        df.columns = df.columns.str.strip()
-        replacements = {
-            "cod_distrito": "codigo_distrito",
-            "cod_barrio": "codigo_barrio",
-        }
-        df.rename(columns=replacements, inplace=True)
-        return df
-
-    ser_dfs = []
-    for file in csv_files[:2]:  # TODO: Remove the slicing
-        logger.info(f"Downloading {file}...")
-        obj = s3.get_object(Bucket=bucket_name, Key=file)
-        data = obj["Body"].read().decode("utf-8")
-        lines = data.split("\n")
-        first_line = lines[0]
-        second_line = lines[1]
-        rest_of_file = "\n".join(lines[2:])
-        delimiter = ";" if ";" in second_line else ","
-        if delimiter not in first_line:
-            first_line = (
-                first_line.replace(",", ";")
-                if delimiter == ";"
-                else first_line.replace(";", ",")
-            )
-        corrected_data = first_line + "\n" + second_line + "\n" + rest_of_file
-        corrected_data_io = StringIO(corrected_data)
-        df = pd.read_csv(corrected_data_io, delimiter=delimiter, low_memory=False)
-        df = standardize_columns(df)
-        ser_dfs.append(df)
-
-    ser_df = pd.concat(ser_dfs, ignore_index=True)
-    return ser_df
-
-
-@step
-def spaces_data_loader(
-    bucket_name: str,
-    object_key: str,
-) -> Annotated[pd.DataFrame, "raw_spaces_df"]:
-    """Load the spaces data from S3 bucket.
-
-    Args:
-        bucket_name: Name of the S3 bucket where the data is stored.
-        object_key: Key of the object in the S3 bucket.
-
-    Returns:
-        The dataset artifact as Pandas DataFrame.
-    """
-    logger.info(f"Loading spaces data from S3 bucket: {bucket_name}/{object_key}")
-    s3 = boto3.client("s3")
-    s3_object = s3.get_object(Bucket=bucket_name, Key=object_key)
-    csv_content = s3_object["Body"].read().decode("ISO-8859-1")
-    csv_file_like = StringIO(csv_content)
-    raw_spaces_df = pd.read_csv(csv_file_like, delimiter=";", low_memory=False)
-    return raw_spaces_df
+    return DATA_SOURCE.load_csv(
+        SPACES_DATA_PATH,
+        delimiter=";",
+        encoding="ISO-8859-1",
+    )

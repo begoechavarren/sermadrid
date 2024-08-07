@@ -42,14 +42,8 @@ def feature_engineering() -> Tuple[pd.DataFrame, dict]:
         The processed parkings dataset (raw_ser_df).
         The processed spaces dict (spaces_clean).
     """
-    raw_ser_df = parkings_data_loader(
-        bucket_name="sermadrid",
-        object_key="data/input/parkings/",
-    )
-    raw_spaces_df = spaces_data_loader(
-        bucket_name="sermadrid",
-        object_key="data/input/spaces/2024.csv",
-    )
+    raw_ser_df = parkings_data_loader()
+    raw_spaces_df = spaces_data_loader()
     ser_df = parkings_data_preprocessor(
         raw_ser_df=raw_ser_df,
     )
