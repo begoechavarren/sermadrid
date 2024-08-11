@@ -1,12 +1,50 @@
 <div align="center">
   <h1>🚘 sermadrid</h1>
-  <p><em>E2E app to search for public parking availability in Madrid SER zone</em></p>
-  <p><a href="http://sermadrid.org">sermadrid.org</a></p>
+  <p><em>E2E project to search for public parking availability in Madrid SER zone</em></p>
+  <p><a href="http://sermadrid.org">sermadrid.org</a></p> <!-- TODO: Add more examples -->
+
 </div>
 
 > [!WARNING]
 > `sermadrid` is currently under active development.
 
+`sermadrid` is an E2E Machine Learning project to search for public parking availability in Madrid SER zone.
+
+The project results in the website [sermadrid.org](https://sermadrid.org/), which is publicly available, and allows users to search for parking availability based on their chosen date and address.
+
+It uses Time Series models, with one model per neighborhood, to make the predictions. These models have been trained on four years of parking ticket data (2020 to 2024).
+
+The project consists of several components, including the frontend (Node.js), backend (FastAPI), infrastructure (Digital Ocean & AWS, defined with Terraform), CI/CD deployment pipelines (Github Actions), MLOps framework server for training workflows orchestration (ZenML), and experiment tracking and model registry server (MLFlow).
+
+<img src="assets/sermadrid.png" alt="sernadrid_screenshot" width="825" />
+
+## 📥 Input data
+
+
+## 🧩 Project Components
+* Frontend: Node.js
+* Backend: FastAPI
+* Infrastructure: DigitalOcean & AWS, managed with Terraform
+* CI/CD Pipelines: GitHub Actions
+* MLOps Framework: ZenML for training workflow orchestration
+* Experiment Tracking & Model Registry: MLFlow
+
+## 📁 Project Structure
+
+```
+📂 sermadrid
+├── 📂 .github              - GitHub Actions CI/CD pipelines
+├── 📂 backend
+|   ├── 📂 app              - FastAPI app 
+|   └── 📂 sermadrid        - sermadrid python package
+├── 📂 frontend             - Node.js app
+├── 📂 infrastructure       - Terraform IaC resources
+|   ├── 📂 backend          - Digital Ocean backend infrastructure
+|   └── 📂 zenml            - AWS ZenML server and stack infrastructure
+└── 📂 zenml                - ZenML training workflow pipelines 
+```
+
+## ➡️ Next steps
 
 ## ⚙️ Local deployment
 
@@ -34,7 +72,6 @@ Afterwards, to stop all the running containers, run:
 ```
 $ docker stop $(docker ps -a -q) 
 ```
-
 
 ## ⚙️ Remote deployment
 
