@@ -141,22 +141,25 @@ class S3DataSource(DataSource):
         self.s3 = boto3.client("s3")
         self.bucket_name = bucket_name
 
-    def load_csv(self, file_path: str, format: str) -> pd.DataFrame:
+    def load_csv(
+        self, file_path: str, encoding: str, delimiter: Optional[str] = None
+    ) -> pd.DataFrame:
         """
         Load a CSV file from the S3 bucket.
 
         Args:
             file_path: Path to the CSV file in the S3 bucket.
-            format: Format of the CSV file.
+            encoding: Encoding of the CSV file.
 
         Returns:
             DataFrame containing the CSV data.
         """
+        logger.info(f"Loading {file_path} from S3 bucket {self.bucket_name}...")
         obj = self.s3.get_object(Bucket=self.bucket_name, Key=file_path)
-        csv_content = obj["Body"].read().decode(format)
+        csv_content = obj["Body"].read().decode(encoding)
         return pd.read_csv(StringIO(csv_content))
 
-    def list_files(self, path: str, *kwargs) -> List[str]:
+    def list_csv_files(self, path: str) -> List[str]:
         """
         List all files in a given path in the S3 bucket.
 

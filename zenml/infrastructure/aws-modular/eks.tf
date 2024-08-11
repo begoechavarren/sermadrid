@@ -20,8 +20,7 @@ resource "aws_eks_node_group" "nodegroup" {
     min_size     = 1
   }
   # capacity_type  = "SPOT"
-  instance_types = ["t3.medium"] # TODO: Change to t3.large if needed
-
+  instance_types = ["t3.large"]
 
   update_config {
     max_unavailable = 1

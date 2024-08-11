@@ -20,6 +20,7 @@ RUN poetry config --list
 # Run poetry check to ensure pyproject.toml is correct
 RUN poetry check || true
 
+
 # Install dependencies (this step is cached unless pyproject.toml or poetry.lock change)
 RUN poetry config virtualenvs.create false \
     && poetry install
