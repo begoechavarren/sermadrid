@@ -78,7 +78,7 @@ export default {
       ('0' + currentDate.getHours()).slice(-2) +
       ':' +
       ('0' + currentDate.getMinutes()).slice(-2) +
-      ':00'; // Set seconds to 00
+      ':00';
     return {
       datetime: formattedDate,
       address: '',
@@ -112,18 +112,18 @@ export default {
       zoom: 12,
       minZoom: 10.5,
       maxBounds: [
-        [-4.1, 40.37], // Southwest
-        [-3.3, 40.5], // Northeast
+        [-4.1, 40.37],
+        [-3.3, 40.5],
       ],
     });
 
     const updateMask = () => {
       const bounds = this.map.getBounds().toArray().flat();
       const expandedBounds = [
-        bounds[0] - 1, // west (left) bound - expand by 1 degree
-        bounds[1] - 1, // south (bottom) bound - expand by 1 degree
-        bounds[2] + 1, // east (right) bound - expand by 1 degree
-        bounds[3] + 1, // north (top) bound - expand by 1 degree
+        bounds[0] - 1,
+        bounds[1] - 1,
+        bounds[2] + 1,
+        bounds[3] + 1,
       ];
       const bboxPoly = turf.bboxPolygon(expandedBounds);
       const maskGeometry = limiteZonaSer.features[0].geometry;
@@ -168,7 +168,6 @@ export default {
     this.map.on('load', () => {
       updateMask();
 
-      // Add neighborhood limits as a new source without showing the lines initially
       this.map.addSource('neighbourhoodLimits', {
         type: 'geojson',
         data: neighbourhoodLimits,
@@ -224,7 +223,7 @@ export default {
       this.handleCoordinates(e.lngLat.lng, e.lngLat.lat, false, e.originalEvent);
     },
     async handleCoordinates(lng, lat, isAddress, event) {
-      this.clearMessages(); // Clear any existing messages
+      this.clearMessages();
       const point = turf.point([lng, lat]);
       const within = turf.booleanPointInPolygon(
         point,
@@ -240,10 +239,8 @@ export default {
           .setLngLat([this.longitude, this.latitude])
           .addTo(this.map);
 
-        // Remove existing highlight
         this.clearHighlight();
 
-        // Find the neighborhood the point is in
         this.clickedFeature = null;
         for (const feature of neighbourhoodLimits.features) {
           if (turf.booleanPointInPolygon(point, feature)) {
@@ -254,16 +251,15 @@ export default {
           }
         }
 
-        // Update address in the text box
         if (!isAddress) {
           const placeName = await this.reverseGeocode(lng, lat);
           this.address = placeName;
         }
 
         this.showMessage = false;
-        this.itemResult = null; // Clear previous result
+        this.itemResult = null;
       } else {
-        this.clearMessages(); // Clear any existing messages
+        this.clearMessages();
         this.showMessage = true;
         this.outsideMessage = 'Please select an address within the Madrid SER zone';
         this.clearMarker();
@@ -271,13 +267,11 @@ export default {
         this.address = '';
         this.itemResult = null;
 
-        // Ensure proper positioning
         const viewportWidth = window.innerWidth;
-        const messageBoxWidth = 160; // Approximate width of the message box
+        const messageBoxWidth = 160;
         const x = event.clientX;
         let y = event.clientY;
 
-        // Adjust the position to ensure message box is within viewport
         if (x <= viewportWidth / 2) {
           this.messagePosition = { x: Math.min(x + messageBoxWidth, viewportWidth - messageBoxWidth), y };
         } else {
@@ -285,13 +279,13 @@ export default {
         }
 
         this.isAddressCheck = !event;
-        this.neighbourhood_id = null; // Ensure the neighbourhood_id is null
+        this.neighbourhood_id = null;
       }
     },
     clearMessages() {
-      this.showMessage = false; // Ensure only one message is displayed
-      this.itemResult = null; // Clear the result message as well
-      this.clearHighlight(); // Clear neighborhood highlight
+      this.showMessage = false;
+      this.itemResult = null;
+      this.clearHighlight();
     },
     clearMarker() {
       if (this.marker) {
@@ -309,7 +303,6 @@ export default {
       this.clickedFeature = null;
     },
     formatNeighbourhoodId(CODDIS, CODBAR) {
-      // Ensure CODBAR is always two digits
       const formattedCODBAR = String(CODBAR).padStart(2, '0');
       return `${CODDIS}${formattedCODBAR}`;
     },
@@ -322,46 +315,41 @@ export default {
     },
     getColorForAvailability(prediction) {
       if (prediction <= 0.2) {
-        return '#FF0000'; // Red
+        return '#FF0000';
       } else if (prediction <= 0.4) {
-        return '#FFA500'; // Orange
+        return '#FFA500';
       } else {
-        return '#90EE90'; // Green
+        return '#90EE90';
       }
     },
     async getItem() {
-      this.clearMessages(); // Clear any existing messages
+      this.clearMessages();
       if (!this.address) {
         this.showMessage = true;
         this.outsideMessage = 'Please select the address where you would like to park';
         this.isAddressCheck = true;
-        return; // Exit the function early
+        return;
       }
       if (this.neighbourhood_id === null) {
         this.showMessage = true;
         this.outsideMessage = 'Please select an address within the Madrid SER zone';
         this.isAddressCheck = true;
-        return; // Exit the function early
+        return;
       }
 
-      // Check if the selected datetime is outside the SER zone hours
       const date = new Date(this.datetime);
       const day = date.getDay();
       const hour = date.getHours();
 
-      // Check if it's out of SER zone schedule
       if (day === 0 || 
-          // Check if it's Monday to Friday and outside 9am to 9pm
           (day >= 1 && day <= 5 && (hour < 9 || hour >= 21)) ||
-          // Check if it's Saturday and after 3pm
           (day === 6 && hour >= 15) ||
-          // Check if it's Sunday
           (day === 7)) {
-        this.clearMessages(); // Clear any existing messages
-        this.showMessage = true; // Set the new message state
+        this.clearMessages();
+        this.showMessage = true;
         this.outsideMessage = 'Please select a time within the Madrid SER zone schedule';
-        this.clearHighlight(); // Clear neighborhood highlight
-        return; // Exit the function early
+        this.clearHighlight();
+        return;
       }
 
       try {
@@ -369,13 +357,12 @@ export default {
           const coords = await this.geocodeAddress(this.address);
           await this.handleCoordinates(coords.lng, coords.lat, true);
         }
-        // Check if neighbourhood_id is set
         if (this.neighbourhood_id === null) {
           this.itemResult = 'Please select an address within the Madrid SER zone';
           this.showMessage = true;
           this.outsideMessage = 'Please select an address within the Madrid SER zone';
           this.isAddressCheck = true;
-          return; // Exit the function early
+          return;
         }
 
         const response = await fetch(
@@ -386,7 +373,6 @@ export default {
         }
         const result = await response.json();
 
-        // Highlight the selected neighborhood when the result is shown
         if (this.clickedFeature) {
           const highlightSourceId = 'highlight';
           const fillColor = this.getColorForAvailability(result.prediction);
@@ -440,8 +426,8 @@ export default {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  margin: 0; /* Remove any default margin */
-  padding: 0; /* Remove any default padding */
+  margin: 0;
+  padding: 0;
 }
 
 .map-container {
@@ -461,50 +447,50 @@ export default {
   display: flex;
   align-items: center;
   background-color: rgba(255, 255, 255, 0.8);
-  padding: 2px 2px; /* Adjusted internal padding */
+  padding: 2px 2px;
   border-radius: 10px;
-  width: 280px; /* Updated width */
-  height: 120px; /* Restored height */
+  width: 280px;
+  height: 120px;
 }
 
 .logo {
-  width: 107.52px; /* Restored logo size */
+  width: 107.52px;
   height: 107.52px;
 }
 
 .header-text {
-  margin-left: -20px; /* Reduced space between logo and text, overlaps slightly */
+  margin-left: -20px;
 }
 
 .header-text h1 {
   margin: 0;
-  font-size: 1.82em; /* Restored font size */
-  margin-right: 20px; /* Added internal margin to the right */
+  font-size: 1.82em;
+  margin-right: 20px;
 }
 
 .availability-form {
   position: absolute;
-  top: 150px; /* Further reduced top margin to bring it closer to the header */
+  top: 150px;
   left: 20px;
   z-index: 2;
-  width: 280px; /* Updated width */
+  width: 280px;
   background-color: rgba(255, 255, 255, 0.8);
   padding: 10px;
   border-radius: 10px;
 }
 
 .form-description {
-  margin: 0 0 10px 0; /* Add some space below the description */
-  white-space: normal; /* Allow wrapping */
-  max-width: 100%; /* Ensure it fits within the form */
-  line-height: 1.5em; /* Adjust line height for better readability */
+  margin: 0 0 10px 0;
+  white-space: normal;
+  max-width: 100%;
+  line-height: 1.5em;
 }
 
 .availability-form .form-group {
   display: flex;
   flex-direction: column;
-  margin-bottom: 5px; /* Reduce the space between the form groups */
-  position: relative; /* For suggestions positioning */
+  margin-bottom: 5px;
+  position: relative;
 }
 
 .availability-form .form-control {
@@ -519,7 +505,7 @@ export default {
   border: 1px solid #ccc;
   border-radius: 5px;
   position: absolute;
-  top: 38px; /* Adjust to be below the input field */
+  top: 38px;
   width: 100%;
   z-index: 3;
 }
@@ -535,13 +521,13 @@ export default {
 
 .availability-button {
   width: 100%;
-  padding: 8px; /* Reduce padding */
+  padding: 8px;
   background-color: #42b983;
   border: none;
   color: white;
   cursor: pointer;
   border-radius: 5px;
-  margin-top: 5px; /* Reduce space between datetime and button */
+  margin-top: 5px;
 }
 
 .result-output {
@@ -562,24 +548,23 @@ export default {
 .outside-message,
 .centered-message {
   position: absolute;
-  background: rgba(255, 255, 255, 0.8); /* Match the background color */
-  padding: 10px; /* Match the padding */
-  border: 1px solid #ccc; /* Match the border */
-  border-radius: 10px; /* Match the border radius */
+  background: rgba(255, 255, 255, 0.8);
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
   pointer-events: none;
-  z-index: 1000; /* Ensure it's above map elements */
+  z-index: 1000;
   text-align: center;
   font-weight: bold;
   width: 300px;
 }
 
 .outside-message {
-  /* Ensure proper positioning and transformation for outside message */
   transform: translate(-50%, -50%);
 }
 
 .centered-message {
-  bottom: 20px; /* Adjust bottom position */
+  bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
 }

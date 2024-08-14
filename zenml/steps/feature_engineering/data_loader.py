@@ -28,7 +28,7 @@ def parkings_data_loader() -> Annotated[pd.DataFrame, "raw_ser_df"]:
     csv_file_paths = DATA_SOURCE.list_csv_files(PARKINGS_DATA_PATH)
 
     dfs = []
-    for file_path in csv_file_paths[:2]:  # TODO: Remove slicing
+    for file_path in csv_file_paths:
         logger.info(f"Loading {file_path}...")
         df = DATA_SOURCE.load_csv(
             file_path=file_path,

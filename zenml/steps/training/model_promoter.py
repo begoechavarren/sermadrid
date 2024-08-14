@@ -21,8 +21,8 @@ def model_promoter(
     spaces_object_key: str,
 ) -> None:
     # TODO: Actually this should upload the model to a model registry,
-    # if it is locally it should be the models local directory and
-    # if it is in the cloud it should be in AWS S3
+    #  if it is locally it should be the models local directory and
+    #  if it is in the cloud it should be in AWS S3
     """Model promoter step. Upload the model to AWS S3.
 
     Args:
@@ -34,7 +34,7 @@ def model_promoter(
     Returns:
         Whether the model was promoted or not.
     """
-    # TODO: Add zenml functionality to store and promote models
+    # TODO: Add ZenML functionality to store and promote models
     #  and promote them based on evaluation metrics
 
     client = Client()
