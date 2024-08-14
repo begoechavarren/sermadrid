@@ -341,16 +341,21 @@ export default {
       const day = date.getDay();
       const hour = date.getHours();
 
-      if (day === 0 || 
-          (day >= 1 && day <= 5 && (hour < 9 || hour >= 21)) ||
-          (day === 6 && hour >= 15) ||
-          (day === 7)) {
-        this.clearMessages();
-        this.showMessage = true;
-        this.outsideMessage = 'Please select a time within the Madrid SER zone schedule';
-        this.clearHighlight();
-        return;
-      }
+      const month = date.getMonth(); // 7 = August
+
+    if (
+        (month === 7 && day >= 1 && day <= 5 && hour >= 15) ||
+        day === 0 || 
+        (day >= 1 && day <= 5 && (hour < 9 || hour >= 21)) ||
+        (day === 6 && hour >= 15) ||
+        (day === 7)
+    ) {
+      this.clearMessages();
+      this.showMessage = true;
+      this.outsideMessage = 'Please select a time within the Madrid SER zone schedule';
+      this.clearHighlight();
+      return;
+    }
 
       try {
         if (this.address) {
