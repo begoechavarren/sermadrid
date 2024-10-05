@@ -94,6 +94,7 @@ def data_aggregator(
 
     def create_barrio_agg_ser_df(df: pd.DataFrame) -> pd.DataFrame:
         start_times = df["fecha_inicio_dt"].dt.floor("h").value_counts().sort_index()
+
         end_times = (
             (df["fecha_fin_dt"] + pd.Timedelta(hours=1))
             .dt.floor("h")
@@ -101,11 +102,24 @@ def data_aggregator(
             .sort_index()
         )
         time_changes = (start_times.subtract(end_times, fill_value=0)).cumsum()
-        time_range = pd.date_range(
-            start=df["fecha_inicio_dt"].min().floor("h"),
-            end=(df["fecha_fin_dt"].max() + pd.Timedelta(hours=1)).floor("h"),
-            freq="h",
-        )
+
+        start_date = df["fecha_inicio_dt"].min().floor("h")
+        end_date = (df["fecha_fin_dt"].max() + pd.Timedelta(hours=1)).floor("h")
+
+        if pd.isnull(start_date) or pd.isnull(end_date):
+            logger.error("Start or end date is NaT")
+            raise ValueError("Start or end date is NaT. Please check your input data.")
+
+        try:
+            time_range = pd.date_range(
+                start=start_date,
+                end=end_date,
+                freq="h",
+            )
+        except Exception as e:
+            logger.error(f"Error creating time_range: {str(e)}")
+            raise
+
         agg_ser_df = (
             time_changes.reindex(time_range, method="ffill")
             .fillna(0)
@@ -114,12 +128,19 @@ def data_aggregator(
         return agg_ser_df
 
     all_barrio_zona_dfs = []
-    for barrio_id in tqdm(pre_agg_ser_df["barrio_id"].unique()):
-        for tipo_zona in tqdm(pre_agg_ser_df["tipo_zona"].unique()):
+    for tipo_zona in tqdm(pre_agg_ser_df["tipo_zona"].unique()):
+        for barrio_id in tqdm(pre_agg_ser_df["barrio_id"].unique()):
             barrio_zona_df = pre_agg_ser_df[
                 (pre_agg_ser_df["barrio_id"] == barrio_id)
                 & (pre_agg_ser_df["tipo_zona"] == tipo_zona)
             ].reset_index(drop=True)
+
+            if barrio_zona_df.empty:
+                logger.info(
+                    f"Skipping barrio_id {barrio_id} and tipo_zona {tipo_zona} as it has no data"
+                )
+                continue
+
             barrio_zona_agg_ser_df = create_barrio_agg_ser_df(barrio_zona_df).assign(
                 barrio_id=barrio_id, tipo_zona=tipo_zona
             )

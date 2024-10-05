@@ -3,6 +3,7 @@ from uuid import UUID
 
 from zenml import pipeline
 from zenml.client import Client
+from zenml.config import DockerSettings
 from zenml.logger import get_logger
 
 from steps.training.model_promoter import model_promoter
@@ -10,8 +11,14 @@ from steps.training.model_trainer import model_trainer
 
 logger = get_logger(__name__)
 
+# TODO: Want this permanently set to True?
+docker_settings = DockerSettings(
+    dockerfile="./Dockerfile",
+    build_context_root=".",
+)
 
-@pipeline
+
+@pipeline(settings={"docker": docker_settings})
 def training(
     final_agg_ser_df_version_id: Optional[UUID] = None,
     spaces_clean_version_id: Optional[UUID] = None,

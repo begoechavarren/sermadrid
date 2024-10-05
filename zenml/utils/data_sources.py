@@ -157,7 +157,12 @@ class S3DataSource(DataSource):
         logger.info(f"Loading {file_path} from S3 bucket {self.bucket_name}...")
         obj = self.s3.get_object(Bucket=self.bucket_name, Key=file_path)
         csv_content = obj["Body"].read().decode(encoding)
-        return pd.read_csv(StringIO(csv_content))
+        return pd.read_csv(
+            StringIO(csv_content),
+            delimiter=delimiter,
+            encoding=encoding,
+            low_memory=False,
+        )
 
     def list_csv_files(self, path: str) -> List[str]:
         """
@@ -169,6 +174,9 @@ class S3DataSource(DataSource):
         Returns:
             List of paths to the files in the S3 bucket.
         """
+        logger.info(
+            f"Listing CSV files in path {path} in S3 bucket {self.bucket_name}..."
+        )
         response = self.s3.list_objects_v2(Bucket=self.bucket_name, Prefix=path)
         return [
             content["Key"]
@@ -186,15 +194,15 @@ def get_data_source() -> DataSource:
         An instance of `LocalDataSource` or `S3DataSource` based on the
             active ZenML stack configuration.
     """
-    from utils.config import S3_BUCKET_NAME
-
     client = Client()
     stack = client.active_stack
     artifact_store = stack._artifact_store
+    secret_values = client.get_secret("aws").secret_values
 
     if isinstance(artifact_store, S3ArtifactStore):
-        logger.info(f"Using S3DataSource with bucket: {S3_BUCKET_NAME}")
-        return S3DataSource(S3_BUCKET_NAME)
+        s3_bucket_name = secret_values["S3_BUCKET_NAME"]
+        logger.info(f"Using S3DataSource with bucket: {s3_bucket_name}")
+        return S3DataSource(s3_bucket_name)
 
     logger.info("Using LocalDataSource")
     return LocalDataSource()

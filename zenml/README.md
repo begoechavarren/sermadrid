@@ -14,8 +14,8 @@ python run.py --feature-pipeline
 # Run the training pipeline
 python run.py --training-pipeline
 
+# TODO: Remove this?
 # Run the training pipeline with versioned artifacts
 python run.py --training-pipeline --train-dataset-version-name=1 --test-dataset-version-name=1
-
 # Run the inference pipeline
 python run.py --inference-pipeline

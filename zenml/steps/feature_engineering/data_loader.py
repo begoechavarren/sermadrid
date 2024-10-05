@@ -9,6 +9,7 @@ from utils.data_sources import get_data_source
 
 logger = get_logger(__name__)
 
+logger.info("Loading data...")
 DATA_SOURCE = get_data_source()
 PARKINGS_DATA_PATH, SPACES_DATA_PATH = get_data_paths()
 
@@ -25,7 +26,11 @@ def parkings_data_loader() -> Annotated[pd.DataFrame, "raw_ser_df"]:
     Returns:
         The parkings dataset as a Pandas DataFrame.
     """
+    logger.info(f"Loading data from {DATA_SOURCE} at {PARKINGS_DATA_PATH}...")
     csv_file_paths = DATA_SOURCE.list_csv_files(PARKINGS_DATA_PATH)
+    logger.info(
+        f"Found this number of CSV files {len(csv_file_paths)}: {csv_file_paths}"
+    )
 
     dfs = []
     for file_path in csv_file_paths:
@@ -51,6 +56,8 @@ def spaces_data_loader() -> Annotated[pd.DataFrame, "raw_spaces_df"]:
     Returns:
         The dataset artifact as Pandas DataFrame.
     """
+    logger.info(f"Spaces data path: {SPACES_DATA_PATH}")
+    # TODO: Fix S3DataSource load_csv function
     return DATA_SOURCE.load_csv(
         SPACES_DATA_PATH,
         delimiter=";",

@@ -106,6 +106,7 @@ def spaces_data_preprocessor(
         The processed dataset (spaces_grouped_df).
         The cleaned dict (spaces_clean).
     """
+    logger.info(f"Processing spaces data with columns...{raw_spaces_df.columns}")
     # Create `barrio_id` and clean `barrio` names
     spaces_df = raw_spaces_df.assign(
         barrio_id=lambda df: df["barrio"]
