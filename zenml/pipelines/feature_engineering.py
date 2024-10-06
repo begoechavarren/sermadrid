@@ -26,7 +26,7 @@ model = Model(
 )
 
 docker_settings = DockerSettings(
-    dockerfile="./Dockerfile",
+    dockerfile="./zenml.dockerfile",
     build_context_root=".",
 )
 

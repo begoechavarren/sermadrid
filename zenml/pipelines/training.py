@@ -13,7 +13,7 @@ logger = get_logger(__name__)
 
 # TODO: Want this permanently set to True?
 docker_settings = DockerSettings(
-    dockerfile="./Dockerfile",
+    dockerfile="./zenml.dockerfile",
     build_context_root=".",
 )
 
