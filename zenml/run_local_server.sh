@@ -2,13 +2,14 @@
 
 # Set variables
 ZENML_SERVER_URL="http://localhost:8081"
-MLFLOW_TRACKING_URI="http://localhost:5001"
+MLFLOW_TRACKING_URI="http://localhost:5000"
 
 # Load environment variables
 source ../.env
 
 # Connect to the ZenML server
 echo "Connecting to ZenML server..."
+echo  $ZENML_SERVER_URL
 zenml connect --url $ZENML_SERVER_URL
 
 # Check if the connection was successful

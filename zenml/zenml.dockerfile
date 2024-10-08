@@ -1,5 +1,5 @@
 # Use the specified ZenML image as the base image
-FROM zenmldocker/zenml:0.67.0-py3.11
+FROM zenmldocker/zenml:0.66.0-py3.11
 
 # Set the working directory in the container
 WORKDIR /app

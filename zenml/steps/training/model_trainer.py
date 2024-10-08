@@ -1,16 +1,18 @@
 from uuid import UUID
 
-from sermadrid.models import CustomProphetModelNH
 from tqdm import tqdm
 from typing_extensions import Annotated
 from zenml import step
 from zenml.client import Client
 from zenml.logger import get_logger
 
+from sermadrid.sermadrid.models import CustomProphetModelNH
+
 logger = get_logger(__name__)
 
 
-@step
+# TODO: Set enable_cache to True?
+@step(enable_cache=True)
 def model_trainer(
     final_agg_ser_df_version_id: UUID,
 ) -> Annotated[dict, "trained_models"]:

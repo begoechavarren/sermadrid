@@ -65,7 +65,7 @@ locals {
   }
 
   zenml = {
-    version                         = "0.67.0"
+    version                         = "0.66.0"
     database_ssl_ca                 = ""
     database_ssl_cert               = ""
     database_ssl_key                = ""

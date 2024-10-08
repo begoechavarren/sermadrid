@@ -1,10 +1,13 @@
 import numpy as np
 import pandas as pd
 from prophet import Prophet
+from prophet.serialize import model_from_json, model_to_json
 from workalendar.europe import CommunityofMadrid
 
+import mlflow
 
-class CustomProphetModelNH:
+
+class CustomProphetModelNH(mlflow.pyfunc.PythonModel):
     def __init__(self, barrio_id: int) -> None:
         self.model = None
         self.barrio_id = barrio_id
@@ -53,13 +56,8 @@ class CustomProphetModelNH:
         prophet_train_df = self._create_train_df(y_train=y_train, agg_df=nh_agg_df)
         self.model.fit(prophet_train_df)
 
-    def predict(
-        self, dates: np.ndarray = None, X_test: np.ndarray = None
-    ) -> np.ndarray:
-        if X_test is None:
-            prophet_predict_df = pd.DataFrame({"ds": pd.to_datetime(dates)})
-        else:
-            prophet_predict_df = pd.DataFrame({"ds": self.agg_df.index[-len(X_test) :]})
+    def predict(self, dates: np.ndarray) -> np.ndarray:
+        prophet_predict_df = pd.DataFrame({"ds": pd.to_datetime(dates)})
         forecast = self.model.predict(prophet_predict_df)
 
         forecast["on_sunday"] = (forecast.ds.dt.dayofweek == 6).astype(int)
@@ -91,3 +89,38 @@ class CustomProphetModelNH:
         y_pred_prophet = forecast["yhat"].values
         y_pred_prophet = np.where(y_pred_prophet < 0, 0, y_pred_prophet)
         return y_pred_prophet
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        if self.model:
+            state["model_json"] = model_to_json(self.model)
+            del state["model"]
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        if "model_json" in state:
+            self.model = model_from_json(state["model_json"])
+        else:
+            self.model = None
+
+
+class CustomProphetWrapper(mlflow.pyfunc.PythonModel):
+    def __init__(self, model):
+        self.model = model
+
+    def predict(self, context, model_input):
+        # Ensure model_input is a numpy array of dates
+        if isinstance(model_input, pd.DataFrame):
+            model_input = model_input.iloc[:, 0].values
+        elif isinstance(model_input, pd.Series):
+            model_input = model_input.values
+
+        # Convert to numpy array if it's not already
+        model_input = np.asarray(model_input)
+
+        # Ensure the input is 1D
+        if model_input.ndim > 1:
+            model_input = model_input.flatten()
+
+        return self.model.predict(model_input)

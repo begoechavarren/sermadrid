@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sermadrid"
-version = "0.1.3"
+version = "0.1.11"
 description = "Python package to predict the public parking availability in Madrid SER zone."
 authors = ["Begoña Echavarren Sanchez <begona.echavarren@gmail.com>"]
 

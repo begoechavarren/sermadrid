@@ -186,3 +186,7 @@ terraform.tfstate.backup
 
 # ZenML
 **/.zen/
+mlruns/
+
+# MLFlow
+mlflow.db
