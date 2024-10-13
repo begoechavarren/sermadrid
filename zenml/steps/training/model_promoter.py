@@ -16,7 +16,7 @@ from sermadrid.sermadrid.models import CustomProphetWrapper
 logger = get_logger(__name__)
 
 
-@step(enable_cache=True)
+@step(enable_cache=False)
 def model_promoter(
     trained_models: dict,
     spaces_clean_version_id: UUID,
@@ -31,13 +31,10 @@ def model_promoter(
     import os
 
     client = Client()
+    # Set MLflow tracking URI
     os.environ[
         "MLFLOW_TRACKING_URI"
     ] = client.active_stack.experiment_tracker.config.tracking_uri
-
-    # # Set MLflow tracking URI
-    # mlflow_uri = os.environ.get('MLFLOW_TRACKING_URI', "http://localhost:5000")
-    # mlflow.set_tracking_uri(mlflow_uri)
     logger.info(f"MLflow tracking URI set to: {mlflow.get_tracking_uri()}")
 
     # Log current working directory and environment variables
@@ -45,9 +42,6 @@ def model_promoter(
 
     client = Client()
     mlflow_client = MlflowClient(tracking_uri=mlflow.get_tracking_uri())
-
-    # # Log MLflow client details
-    # logger.info(f"MLflow client tracking URI: {mlflow_client.tracking_uri}")
 
     spaces_clean_artifact_version = client.get_artifact_version(spaces_clean_version_id)
     spaces_clean = spaces_clean_artifact_version.load()
@@ -105,7 +99,6 @@ def model_promoter(
 
                     # Create a conda environment file
                     conda_env = mlflow.pyfunc.get_default_conda_env()
-                    conda_env["dependencies"].extend(["prophet", "workalendar"])
 
                     model_info = mlflow.pyfunc.log_model(
                         artifact_path=f"models/{model_name}",
@@ -117,69 +110,99 @@ def model_promoter(
                         f"Model logged successfully. Model URI: {model_info.model_uri}"
                     )
 
-                    logger.info(f"Successfully logged model {model_name} to MLflow")
-
                     # Get the latest version of the model
-                    latest_version = mlflow_client.get_latest_versions(
-                        str(model_name), stages=["None"]
+                    latest_version = mlflow_client.search_model_versions(
+                        f"name='{model_name}'"
                     )[0]
 
                     # Add tags to the model version
                     mlflow_client.set_model_version_tag(
-                        str(model_name),
-                        latest_version.version,
-                        "promoted_to_production",
-                        "true",
-                    )
-                    mlflow_client.set_model_version_tag(
-                        str(model_name),
-                        latest_version.version,
-                        "promoted_by",
-                        "model_promoter_step",
-                    )
-                    mlflow_client.set_model_version_tag(
-                        str(model_name),
-                        latest_version.version,
-                        "s3_bucket",
-                        bucket_name,
-                    )
-                    mlflow_client.set_model_version_tag(
-                        str(model_name), latest_version.version, "s3_key", s3_key
-                    )
-
-                    # Transition the model to the Production stage
-                    mlflow_client.transition_model_version_stage(
                         name=str(model_name),
                         version=latest_version.version,
-                        stage="Production",
+                        key="s3_path",
+                        value={
+                            "bucket_name": bucket_name,
+                            "s3_key": s3_key,
+                        },
+                    )
+                    mlflow_client.set_model_version_tag(
+                        name=str(model_name),
+                        version=latest_version.version,
+                        key="stage",
+                        value="production",
+                    )
+
+                    # Set the 'champion' alias for the latest version
+                    mlflow_client.set_registered_model_alias(
+                        name=str(model_name),
+                        alias="champion",
+                        version=latest_version.version,
                     )
                     logger.info(
-                        f"Successfully set {model_name} version {latest_version.version} as production in MLflow"
+                        f"Successfully set {model_name} version {latest_version.version} as 'champion' in MLflow"
                     )
+
                 except Exception as e:
                     logger.error(
                         f"Failed to manage model {model_name} in MLflow: {str(e)}"
                     )
                     logger.exception("Full traceback:")
 
-            # Upload spaces_clean data as JSON
-            spaces_file_path = os.path.join(temp_dir, "spaces_clean.json")
-            with open(spaces_file_path, "w") as f:
-                json.dump(spaces_clean, f)
-
+            # Log spaces_clean data to MLflow as an artifact
             try:
-                s3.upload_file(spaces_file_path, bucket_name, spaces_object_key)
-                logger.info(
-                    f"Successfully uploaded spaces_clean data to S3 bucket {bucket_name} with key {spaces_object_key}"
-                )
-            except Exception as e:
-                logger.error(f"Failed to upload spaces_clean data to S3: {str(e)}")
-                logger.exception("Full traceback:")
+                spaces_file_path = os.path.join(temp_dir, "spaces_clean.json")
+                with open(spaces_file_path, "w") as f:
+                    json.dump(spaces_clean, f)
 
-            # Log spaces_clean data as an artifact in MLflow
-            try:
+                # Upload to S3
+                try:
+                    s3.upload_file(spaces_file_path, bucket_name, spaces_object_key)
+                    logger.info(
+                        f"Successfully uploaded spaces_clean data to S3 bucket {bucket_name} with key {spaces_object_key}"
+                    )
+                except Exception as e:
+                    logger.error(f"Failed to upload spaces_clean data to S3: {str(e)}")
+                    logger.exception("Full traceback:")
+
+                # Log to MLflow as an artifact
                 mlflow.log_artifact(spaces_file_path, "spaces_clean")
-                logger.info("Successfully logged spaces_clean data to MLflow")
+                logger.info(
+                    "Successfully logged spaces_clean data to MLflow as an artifact"
+                )
+
+                # Log S3 path as a parameter
+                mlflow.log_param("spaces_clean_s3_bucket", bucket_name)
+                mlflow.log_param("spaces_clean_s3_key", spaces_object_key)
+
+                # Tag this run as the production version for spaces_clean
+                mlflow_client.set_tag(
+                    run.info.run_id, "spaces_clean_production", "true"
+                )
+
+                # Untag the previous production version
+                experiment = mlflow_client.get_experiment_by_name(
+                    mlflow_experiment_name
+                )
+                if experiment:
+                    previous_prod_runs = mlflow_client.search_runs(
+                        experiment_ids=[experiment.experiment_id],
+                        filter_string="tags.spaces_clean_production = 'true'",
+                        max_results=1,
+                        order_by=["attribute.start_time DESC"],
+                    )
+                    for prev_run in previous_prod_runs:
+                        if prev_run.info.run_id != run.info.run_id:
+                            mlflow_client.set_tag(
+                                prev_run.info.run_id, "spaces_clean_production", "false"
+                            )
+                            logger.info(
+                                f"Untagged previous production spaces_clean in run {prev_run.info.run_id}"
+                            )
+
+                logger.info(
+                    f"Tagged current run {run.info.run_id} as production for spaces_clean"
+                )
+
             except Exception as e:
                 logger.error(f"Failed to log spaces_clean data to MLflow: {str(e)}")
                 logger.exception("Full traceback:")
