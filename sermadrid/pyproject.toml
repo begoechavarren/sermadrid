@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sermadrid"
-version = "0.1.11"
+version = "0.1.12"
 description = "Python package to predict the public parking availability in Madrid SER zone."
 authors = ["Begoña Echavarren Sanchez <begona.echavarren@gmail.com>"]
 
@@ -10,6 +10,7 @@ pandas = "^2.2.2"
 numpy = "^1.26.4"
 prophet = "^1.1.5"
 workalendar = "^17.0.0"
+mlflow = ">=2.1.1,<=2.14.2"
 
 [build-system]
 requires = ["poetry-core"]

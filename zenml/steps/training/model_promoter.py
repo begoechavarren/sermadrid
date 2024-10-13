@@ -4,6 +4,7 @@ from uuid import UUID
 
 import boto3
 import cloudpickle
+from sermadrid.models import CustomProphetWrapper
 from zenml import step
 from zenml.client import Client
 from zenml.logger import get_logger
@@ -11,7 +12,6 @@ from zenml.logger import get_logger
 import mlflow
 import mlflow.pyfunc
 from mlflow.tracking import MlflowClient
-from sermadrid.sermadrid.models import CustomProphetWrapper
 
 logger = get_logger(__name__)
 

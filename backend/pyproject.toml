@@ -17,7 +17,7 @@ pandas = "2.2.2"
 prophet = "1.1.5"
 workalendar = "17.0.0"
 cloudpickle = "^2.2.1" 
-sermadrid = { path = "./sermadrid" }
+sermadrid = { path = "../sermadrid" }
 
 [tool.poetry.dev-dependencies]
 ruff = "0.1.2"

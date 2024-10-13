@@ -4,14 +4,11 @@ WORKDIR /code
 
 RUN pip install poetry
 
-COPY ./pyproject.toml /code/pyproject.toml
-
-COPY ./poetry.lock /code/poetry.lock
-
-COPY sermadrid /code/sermadrid
+COPY backend/pyproject.toml backend/poetry.lock ./
+COPY sermadrid /sermadrid
 
 RUN poetry config virtualenvs.create false && poetry install --no-root
 
-COPY ./app/app /code/app/app
+COPY backend/app/app /code/app/app
 
 CMD ["uvicorn", "app.app.main:app", "--host", "0.0.0.0", "--port", "80"]
