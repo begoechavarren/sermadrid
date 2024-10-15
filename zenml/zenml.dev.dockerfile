@@ -14,8 +14,6 @@ COPY sermadrid /sermadrid
 
 RUN poetry config virtualenvs.create false && poetry install --no-root
 
-COPY zenml /app/zenml
-
 ENV ZENML_LOGGING_COLORS_DISABLED=False
 ENV ZENML_ENABLE_REPO_INIT_WARNINGS=False
 ENV ZENML_CONFIG_PATH=/app/.zenconfig
