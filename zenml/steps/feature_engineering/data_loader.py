@@ -14,7 +14,7 @@ DATA_SOURCE = get_data_source()
 PARKINGS_DATA_PATH, SPACES_DATA_PATH = get_data_paths()
 
 
-@step
+@step(enable_cache=True)
 def parkings_data_loader() -> Annotated[pd.DataFrame, "raw_ser_df"]:
     """
     Load the parking data from the configured data source, in

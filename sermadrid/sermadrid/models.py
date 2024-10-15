@@ -11,6 +11,7 @@ class CustomProphetModelNH(mlflow.pyfunc.PythonModel):
     def __init__(self, barrio_id: int) -> None:
         self.model = None
         self.barrio_id = barrio_id
+        super().__init__()
 
     def __str__(self) -> str:
         return "Custom Facebook Prophet"
@@ -56,7 +57,7 @@ class CustomProphetModelNH(mlflow.pyfunc.PythonModel):
         prophet_train_df = self._create_train_df(y_train=y_train, agg_df=nh_agg_df)
         self.model.fit(prophet_train_df)
 
-    def predict(self, dates: np.ndarray) -> np.ndarray:
+    def inference(self, dates: np.ndarray) -> np.ndarray:
         prophet_predict_df = pd.DataFrame({"ds": pd.to_datetime(dates)})
         forecast = self.model.predict(prophet_predict_df)
 
@@ -104,23 +105,5 @@ class CustomProphetModelNH(mlflow.pyfunc.PythonModel):
         else:
             self.model = None
 
-
-class CustomProphetWrapper(mlflow.pyfunc.PythonModel):
-    def __init__(self, model):
-        self.model = model
-
     def predict(self, context, model_input):
-        # Ensure model_input is a numpy array of dates
-        if isinstance(model_input, pd.DataFrame):
-            model_input = model_input.iloc[:, 0].values
-        elif isinstance(model_input, pd.Series):
-            model_input = model_input.values
-
-        # Convert to numpy array if it's not already
-        model_input = np.asarray(model_input)
-
-        # Ensure the input is 1D
-        if model_input.ndim > 1:
-            model_input = model_input.flatten()
-
-        return self.model.predict(model_input)
+        return self.model.inference(dates=model_input)

@@ -10,7 +10,6 @@ from zenml.logger import get_logger
 logger = get_logger(__name__)
 
 
-# TODO: Set enable_cache to True?
 @step(enable_cache=True)
 def model_trainer(
     final_agg_ser_df_version_id: UUID,

@@ -12,7 +12,7 @@ tqdm.pandas(desc="Processing rows")
 logger = get_logger(__name__)
 
 
-@step
+@step(enable_cache=True)
 def parkings_data_preprocessor(
     raw_ser_df: pd.DataFrame,
 ) -> Annotated[pd.DataFrame, "ser_df"]:
@@ -88,7 +88,7 @@ def parkings_data_preprocessor(
     return ser_df
 
 
-@step
+@step(enable_cache=False)
 def spaces_data_preprocessor(
     raw_spaces_df: pd.DataFrame,
 ) -> Tuple[

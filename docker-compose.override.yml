@@ -1,12 +1,11 @@
-version: '3.8'
-
 services:
   backend:
     build: 
       context: .
       dockerfile: backend/backend.dockerfile
     environment:
-      BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
+      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
     volumes:
       - ./backend/app:/code/app
     ports:
@@ -72,6 +71,7 @@ services:
         condition: service_healthy
     networks:
       - app-network
+
 
 networks:
   app-network:

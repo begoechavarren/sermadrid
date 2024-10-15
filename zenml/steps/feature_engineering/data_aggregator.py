@@ -10,7 +10,7 @@ tqdm.pandas(desc="Processing rows")
 logger = get_logger(__name__)
 
 
-@step
+@step(enable_cache=True)
 def data_aggregator(
     ser_df: pd.DataFrame,
 ) -> Annotated[pd.DataFrame, "agg_ser_df"]:

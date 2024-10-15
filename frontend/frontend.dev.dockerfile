@@ -1,6 +1,6 @@
 # Build the Vue.js application
 
-FROM node:lts-alpine as build-stage
+FROM node:lts-alpine AS build-stage
 
 WORKDIR /app
 
@@ -19,7 +19,7 @@ RUN npm run build
 
 # Serve the app with Nginx
 
-FROM nginx:stable-alpine as production-stage
+FROM nginx:stable-alpine AS production-stage
 
 RUN rm -rf /usr/share/nginx/html/*
 

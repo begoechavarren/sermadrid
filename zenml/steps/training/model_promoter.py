@@ -4,7 +4,6 @@ from uuid import UUID
 
 import boto3
 import cloudpickle
-from sermadrid.models import CustomProphetWrapper
 from zenml import step
 from zenml.client import Client
 from zenml.logger import get_logger
@@ -16,7 +15,7 @@ from mlflow.tracking import MlflowClient
 logger = get_logger(__name__)
 
 
-@step(enable_cache=False)
+@step(enable_cache=True)
 def model_promoter(
     trained_models: dict,
     spaces_clean_version_id: UUID,
@@ -95,14 +94,13 @@ def model_promoter(
                 # Log model to MLflow
                 try:
                     logger.info(f"Starting to log model {model_name} to MLflow")
-                    wrapped_model = CustomProphetWrapper(model)
 
                     # Create a conda environment file
                     conda_env = mlflow.pyfunc.get_default_conda_env()
 
                     model_info = mlflow.pyfunc.log_model(
                         artifact_path=f"models/{model_name}",
-                        python_model=wrapped_model,
+                        python_model=model,
                         conda_env=conda_env,
                         registered_model_name=str(model_name),
                     )

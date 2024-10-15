@@ -9,7 +9,7 @@ tqdm.pandas(desc="Processing rows")
 logger = get_logger(__name__)
 
 
-@step
+@step(enable_cache=True)
 def data_tuner(
     agg_ser_df: pd.DataFrame,
     spaces_grouped_df: pd.DataFrame,

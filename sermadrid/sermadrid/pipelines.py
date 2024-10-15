@@ -16,7 +16,7 @@ class SerMadridInferencePipeline:
         if not isinstance(datetime, (pd.DatetimeIndex, list)):
             datetime = [datetime]
 
-        predictions = model.predict(
+        predictions = model.inference(
             dates=datetime,
         )
 
@@ -25,10 +25,10 @@ class SerMadridInferencePipeline:
     def run(
         self,
         datetime: pd.Timestamp | pd.DatetimeIndex,
-        model,
+        model: CustomProphetModelNH,
         num_plazas: int,
         return_percentage: bool = False,
-    ):
+    ) -> List[float]:
         predictions = self._inference(
             model=model,
             datetime=datetime,

@@ -642,13 +642,13 @@ test = ["coveralls (>=3.3,<4)", "iso8601 (>=1,<2)", "mock (>=4,<5)", "pytest (>=
 
 [[package]]
 name = "graphql-core"
-version = "3.2.4"
+version = "3.2.5"
 description = "GraphQL implementation for Python, a port of GraphQL.js, the JavaScript reference implementation for GraphQL."
 optional = false
 python-versions = "<4,>=3.6"
 files = [
-    {file = "graphql-core-3.2.4.tar.gz", hash = "sha256:acbe2e800980d0e39b4685dd058c2f4042660b89ebca38af83020fd872ff1264"},
-    {file = "graphql_core-3.2.4-py3-none-any.whl", hash = "sha256:1604f2042edc5f3114f49cac9d77e25863be51b23a54a61a23245cf32f6476f0"},
+    {file = "graphql_core-3.2.5-py3-none-any.whl", hash = "sha256:2f150d5096448aa4f8ab26268567bbfeef823769893b39c1a2e1409590939c8a"},
+    {file = "graphql_core-3.2.5.tar.gz", hash = "sha256:e671b90ed653c808715645e3998b7ab67d382d55467b7e2978549111bbabf8d5"},
 ]
 
 [[package]]
@@ -2163,7 +2163,7 @@ test = ["Cython", "array-api-strict (>=2.0)", "asv", "gmpy2", "hypothesis (>=6.3
 
 [[package]]
 name = "sermadrid"
-version = "0.1.12"
+version = "0.1.14"
 description = "Python package to predict the public parking availability in Madrid SER zone."
 optional = false
 python-versions = "^3.10"
@@ -2624,4 +2624,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "3.11.9"
-content-hash = "c54a0230ffca07a76c9368c527a52e4df337a1db370ea3ed51692e9a1b4a82d1"
+content-hash = "07d693849d5d1188a681210c5af7d3597cb2c660ce89c5de13fc9772e8a71fe8"

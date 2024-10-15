@@ -3,6 +3,7 @@ name = "sermadrid-backend"
 version = "0.1.0"
 description = "Backend project to predict the public parking availability in Madrid SER zone."
 authors = ["Begoña Echavarren Sanchez <begona.echavarren@gmail.com>"]
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "3.11.9"
@@ -18,6 +19,7 @@ prophet = "1.1.5"
 workalendar = "17.0.0"
 cloudpickle = "^2.2.1" 
 sermadrid = { path = "../sermadrid" }
+mlflow = ">=2.1.1,<=2.14.2"
 
 [tool.poetry.dev-dependencies]
 ruff = "0.1.2"
