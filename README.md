@@ -97,7 +97,7 @@ $ docker stop $(docker ps -a -q)
 
 ### Remote deployment
 
-**Infrastructure**
+**App Infrastructure**
 
 1. Create a Digital Ocean account
 2. Create a Digital Ocean [API key](https://docs.digitalocean.com/reference/api/create-personal-access-token/)
@@ -129,6 +129,23 @@ $ docker stop $(docker ps -a -q)
 4. Create the following GitHub Actions variables in the GitHub repository:
     - `BACKEND_CORS_ORIGINS`: A comma-separated list of origins allowed to access the backend to configure the CORS policy (in this case just the frontend: *["http://{DO_DROPLET_IP}", "http://{DOMAIN_NAME}", "http://www.{DOMAIN_NAME}"]*)
 5. Run GitHub actions `deploy-app.yml` workflow to deploy the app
+
+**ML Infrastructure**
+
+1. Create the following GitHub Actions variables in the GitHub repository:
+    - `AWS_S3_REMOTE_STATE_BUCKET_NAME`: Name to give to the AWS S3 bucket used for the Terraform remote state of this infrastructure stack
+    - `AWS_S3_ZENML_BUCKET_NAME`
+    - `AWS_S3_MLFLOW_BUCKET_NAME`
+2. Create the following GitHub Actions secret variables in the GitHub repository:
+    - `ZENML_USERNAME`
+    - `ZENML_PASSWORD`
+    - `MLFLOW_USERNAME`
+    - `MLFLOW_PASSWORD`
+
+
+TODO: Add mlflow-artifact-S3-access-key and mlflow-artifact-S3-secret-key
+TODO: Fill description of variables & secrets
+TODO: Add comment about being able to create or destroy infrastructure with TF through the Github action pipelines
 
 ## ➡️ Next Steps
 

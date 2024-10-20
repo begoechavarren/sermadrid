@@ -1,0 +1,117 @@
+name: Deploy ML Infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      remote_state_action:
+        description: 'Action for Remote State'
+        required: true
+        default: 'apply'
+        type: choice
+        options:
+        - apply
+        - destroy
+      aws_modular_action:
+        description: 'Action for ML Infrastructure'
+        required: true
+        default: 'apply'
+        type: choice
+        options:
+        - apply
+        - destroy
+
+env:
+  TF_VAR_region: '${{ vars.AWS_REGION }}'
+  TF_VAR_remote_state_bucket_name: '${{ vars.AWS_S3_REMOTE_STATE_BUCKET_NAME }}'
+  TF_VAR_bucket_name: '${{ vars.AWS_S3_ZENML_BUCKET_NAME }}'
+  TF_VAR_mlflow_bucket: '${{ vars.AWS_S3_MLFLOW_BUCKET_NAME }}'
+  TF_VAR_zenml-username: '${{ secrets.ZENML_USERNAME }}'
+  TF_VAR_zenml-password: '${{ secrets.ZENML_PASSWORD }}'
+  TF_VAR_mlflow-username: '${{ secrets.MLFLOW_USERNAME }}'
+  TF_VAR_mlflow-password: '${{ secrets.MLFLOW_PASSWORD }}'
+  # TODO: Add mlflow-artifact-S3-access-key and mlflow-artifact-S3-secret-key
+
+jobs:
+  deploy_remote_state:
+    name: Deploy Remote State
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Check if S3 bucket exists
+        id: check_bucket
+        run: |
+            if aws s3api head-bucket --bucket ${{ vars.AWS_S3_REMOTE_STATE_BUCKET_NAME }} 2>/dev/null; then
+                echo "Bucket exists"
+                echo "bucket_exists=true" >> $GITHUB_OUTPUT
+            else
+                echo "Bucket does not exist"
+                echo "bucket_exists=false" >> $GITHUB_OUTPUT
+            fi
+  
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ./infrastructure/zenml/aws-remote-state
+
+      - name: Terraform Plan
+        run: terraform plan
+        working-directory: ./infrastructure/zenml/aws-remote-state
+
+      - name: Terraform Apply
+        if: github.event.inputs.remote_state_action == 'apply' && steps.check_bucket.outputs.bucket_exists == 'false'
+        run: terraform apply -auto-approve
+        working-directory: ./infrastructure/zenml/aws-remote-state
+
+      - name: Terraform Destroy
+        if: github.event.inputs.remote_state_action == 'destroy'
+        run: terraform destroy -auto-approve
+        working-directory: ./infrastructure/zenml/aws-remote-state
+
+  deploy_aws_modular:
+    name: Deploy ML Infrastructure
+    needs: deploy_remote_state
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+  
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ./infrastructure/zenml/aws-modular
+
+      - name: Terraform Plan
+        run: terraform plan
+        working-directory: ./infrastructure/zenml/aws-modular
+
+      - name: Terraform Apply
+        if: github.event.inputs.aws_modular_action == 'apply'
+        run: terraform apply -auto-approve
+        working-directory: ./infrastructure/zenml/aws-modular
+
+      - name: Terraform Destroy
+        if: github.event.inputs.aws_modular_action == 'destroy'
+        run: terraform destroy -auto-approve
+        working-directory: ./infrastructure/zenml/aws-modular

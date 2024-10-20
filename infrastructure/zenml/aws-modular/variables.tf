@@ -50,32 +50,26 @@ variable "repo_name" {
 }
 variable "bucket_name" {
   description = "The name of the S3 bucket"
-  default     = "zenml-sermadrid"
 }
 variable "region" {
   description = "The region to deploy resources to"
-  default     = "eu-west-3"
 }
 
 # variables for the MLflow tracking server
 variable "mlflow-artifact-S3-access-key" {
   description = "Your AWS access key for using S3 as MLflow artifact store"
-  default     = "AKIAJX7X7X7X7X7X7X7X"
   type        = string
 }
 variable "mlflow-artifact-S3-secret-key" {
   description = "Your AWS secret key for using S3 as MLflow artifact store"
-  default     = "JbtUCfSc211GYkmZ5MmBF1"
   type        = string
 }
 variable "mlflow-username" {
   description = "The username for the MLflow Tracking Server"
-  default     = "admin"
   type        = string
 }
 variable "mlflow-password" {
   description = "The password for the MLflow Tracking Server"
-  default     = "supersafepassword" # TODO: Parameterize
   type        = string
 }
 variable "mlflow_bucket" {
@@ -92,12 +86,10 @@ variable "zenml-version" {
 
 variable "zenml-username" {
   description = "The username for the ZenML Server"
-  default     = "default"
   type        = string
 }
 variable "zenml-password" {
   description = "The password for the ZenML Server"
-  default     = "supersafepassword"
   type        = string
 }
 variable "zenml-database-url" {
