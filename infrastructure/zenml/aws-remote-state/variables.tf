@@ -1,12 +1,10 @@
 variable "region" {
   description = "The region to deploy resources to"
-  default     = "eu-west-3"
   type        = string
 }
 
 variable "remote_state_bucket_name" {
   description = "The name of the S3 bucket to deploy"
-  default     = "zenml-tf"
   type        = string
 }
 

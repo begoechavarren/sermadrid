@@ -8,7 +8,7 @@ locals {
   prefix = "zenml"
 
   eks = {
-    cluster_name        = "mycluster-${random_string.unique.result}"
+    cluster_name        = "mycluster-zenml"
     cluster_version     = "1.29"
     workloads_namespace = "zenml"
   }
@@ -50,7 +50,7 @@ locals {
   }
 
   mlflow = {
-    version                 = "2.17.03"
+    version                 = "0.7.19"
     artifact_Proxied_Access = "false"
     artifact_S3             = "true"
 
