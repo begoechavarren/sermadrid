@@ -29,8 +29,6 @@ env:
   TF_VAR_zenml-password: '${{ secrets.ZENML_PASSWORD }}'
   TF_VAR_mlflow-username: '${{ secrets.MLFLOW_USERNAME }}'
   TF_VAR_mlflow-password: '${{ secrets.MLFLOW_PASSWORD }}'
-  TF-VAR_mlflow-artifact-S3-access-key: '${{ secrets.AWS_MLFLOW_ARTIFACT_S3_ACCESS_KEY }}'
-  TF-VAR_mlflow-artifact-S3-secret-key: '${{ secrets.AWS_MLFLOW_ARTIFACT_S3_SECRET_KEY }}'
 
 jobs:
   deploy_remote_state:

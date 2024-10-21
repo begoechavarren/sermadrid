@@ -141,8 +141,6 @@ $ docker stop $(docker ps -a -q)
     - `ZENML_PASSWORD`: The password for the ZenML Server
     - `MLFLOW_USERNAME`: The username for the MLflow Tracking Server
     - `MLFLOW_PASSWORD`: The password for the MLflow Tracking Server
-    - `AWS_MLFLOW_ARTIFACT_S3_ACCESS_KEY`: The AWS access key for using S3 as MLflow artifact store
-    - `AWS_MLFLOW_ARTIFACT_S3_SECRET_KEY`: The AWS secret key for using S3 as MLflow artifact store
 
 
 TODO: Add for local deployment, create .tfvars and run terraform with it

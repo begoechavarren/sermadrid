@@ -56,14 +56,6 @@ variable "region" {
 }
 
 # variables for the MLflow tracking server
-variable "mlflow-artifact-S3-access-key" {
-  description = "Your AWS access key for using S3 as MLflow artifact store"
-  type        = string
-}
-variable "mlflow-artifact-S3-secret-key" {
-  description = "Your AWS secret key for using S3 as MLflow artifact store"
-  type        = string
-}
 variable "mlflow-username" {
   description = "The username for the MLflow Tracking Server"
   type        = string
