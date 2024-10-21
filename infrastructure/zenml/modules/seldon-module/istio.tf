@@ -19,6 +19,7 @@ spec:
     hosts:
     - "*"
 YAML    
+  server_side_apply  = true
   override_namespace = kubernetes_namespace.seldon-ns.metadata[0].name
   depends_on = [
     resource.kubernetes_namespace.seldon-ns

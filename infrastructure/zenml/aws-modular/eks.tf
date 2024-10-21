@@ -109,6 +109,7 @@ resource "aws_eks_cluster" "cluster" {
   ]
 }
 
+
 resource "aws_iam_role" "cluster" {
   count = local.enable_eks ? 1 : 0
 
@@ -198,7 +199,7 @@ locals {
 data "external" "get_cluster_info" {
   program = ["bash", "${path.module}/get_cluster_info.sh"]
   query = {
-    cluster_name = "${local.prefix}-${local.eks.cluster_name}"
+    cluster_name = aws_eks_cluster.cluster[0].name
     region       = var.region
   }
 
@@ -210,7 +211,7 @@ data "external" "get_cluster_info" {
 data "external" "get_cluster_auth" {
   program = ["bash", "${path.module}/get_cluster_token.sh"]
   query = {
-    cluster_name = "${local.prefix}-${local.eks.cluster_name}"
+    cluster_name = aws_eks_cluster.cluster[0].name
     region       = var.region
   }
 

@@ -125,6 +125,11 @@ output "ingress-controller-host" {
   value = length(module.nginx-ingress) > 0 ? module.nginx-ingress[0].ingress-hostname : null
 }
 
+output "ingress-controller-ip" {
+  value = length(module.nginx-ingress) > 0 ? module.nginx-ingress[0].ingress-ip-address-aws : null
+}
+
+
 # nginx ingress hostname
 output "nginx-ingress-hostname" {
   value = length(module.nginx-ingress) > 0 ? module.nginx-ingress[0].ingress-hostname : null

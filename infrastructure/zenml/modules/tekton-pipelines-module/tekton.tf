@@ -31,7 +31,7 @@ resource "null_resource" "tekton" {
 # cannot use kubernetes_manifest resource since it practically
 # doesn't support CRDs. Going with kubectl instead.
 resource "kubectl_manifest" "ingress" {
-  yaml_body = <<YAML
+  yaml_body         = <<YAML
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -66,6 +66,7 @@ spec:
                   number: 9097
       host: ${var.ingress_host}
 YAML
+  server_side_apply = true
   depends_on = [
     null_resource.tekton
   ]

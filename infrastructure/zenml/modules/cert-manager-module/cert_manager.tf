@@ -17,11 +17,15 @@ resource "helm_release" "cert-manager" {
     name  = "installCRDs"
     value = "true"
   }
+
+  depends_on = [
+    kubernetes_namespace.cert-manager-ns
+  ]
 }
 
 resource "null_resource" "wait_for_cert_manager" {
   provisioner "local-exec" {
-    command = "sleep 1500"
+    command = "sleep 15"
   }
 
   depends_on = [
@@ -45,7 +49,7 @@ resource "null_resource" "wait_for_cert_manager_crd" {
 # cannot use kubernetes_manifest resource since it practically 
 # doesn't support CRDs. Going with kubectl instead.
 resource "kubectl_manifest" "letsencrypt" {
-  yaml_body = <<YAML
+  yaml_body         = <<YAML
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
@@ -61,7 +65,8 @@ spec:
     - http01:
         ingress:
           class: nginx
-YAML    
+YAML
+  server_side_apply = true
   depends_on = [
     resource.null_resource.wait_for_cert_manager_crd
   ]

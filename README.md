@@ -143,6 +143,7 @@ $ docker stop $(docker ps -a -q)
     - `MLFLOW_PASSWORD`
 
 
+TODO: Add create .tfvars and run terraform with it
 TODO: Add mlflow-artifact-S3-access-key and mlflow-artifact-S3-secret-key
 TODO: Fill description of variables & secrets
 TODO: Add comment about being able to create or destroy infrastructure with TF through the Github action pipelines

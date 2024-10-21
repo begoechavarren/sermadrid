@@ -8,7 +8,7 @@ locals {
   prefix = "zenml"
 
   eks = {
-    cluster_name = "mycluster-${random_string.unique.result}"
+    cluster_name        = "mycluster-${random_string.unique.result}"
     cluster_version     = "1.29"
     workloads_namespace = "zenml"
   }
@@ -35,6 +35,7 @@ locals {
   nginx_ingress = {
     version = "4.4.0"
   }
+
 
   kubeflow = {
     version             = "1.8.3"

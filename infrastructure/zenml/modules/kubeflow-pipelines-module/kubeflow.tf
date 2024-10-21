@@ -31,7 +31,7 @@ resource "null_resource" "kubeflow" {
 resource "kubectl_manifest" "ingress" {
   count = var.istio_enabled ? 0 : 1
 
-  yaml_body = <<YAML
+  yaml_body         = <<YAML
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -66,6 +66,7 @@ spec:
                   number: 80
       host: ${var.ingress_host}
 YAML    
+  server_side_apply = true
   depends_on = [
     null_resource.kubeflow
   ]
@@ -74,8 +75,8 @@ YAML
 
 # Create Gateway and VirtualService if istio is enabled
 resource "kubectl_manifest" "kubeflow-ui-gateway" {
-  count     = var.istio_enabled ? 1 : 0
-  yaml_body = <<YAML
+  count             = var.istio_enabled ? 1 : 0
+  yaml_body         = <<YAML
 apiVersion: networking.istio.io/v1alpha3
 kind: Gateway
 metadata:
@@ -105,14 +106,15 @@ spec:
       credentialName: kubeflow-ui-tls
     %{endif}
 YAML    
+  server_side_apply = true
   depends_on = [
     null_resource.kubeflow
   ]
 }
 
 resource "kubectl_manifest" "kubeflow-ui-virtualservice" {
-  count     = var.istio_enabled ? 1 : 0
-  yaml_body = <<YAML
+  count             = var.istio_enabled ? 1 : 0
+  yaml_body         = <<YAML
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
@@ -133,6 +135,7 @@ spec:
         port:
           number: 80
 YAML    
+  server_side_apply = true
   depends_on = [
     null_resource.kubeflow
   ]
