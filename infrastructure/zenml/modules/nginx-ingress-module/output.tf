@@ -22,7 +22,7 @@ resource "null_resource" "wait_for_ingress" {
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
       }
 
-      max_retries=30
+      max_retries=90
       retry_interval=20
       count=0
 
@@ -32,7 +32,7 @@ resource "null_resource" "wait_for_ingress" {
         ingress_status=$(kubectl get pods -n ${kubernetes_namespace.nginx-ns.metadata[0].name} -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].status.phase}')
         log "Ingress controller pod status: $ingress_status"
         
-        if [ "$ingress_status" == "Running" ]; then
+        if [ "$ingress_status" = "Running" ]; then
           log "Nginx Ingress controller is running"
           
           # Check if LoadBalancer has an IP/hostname assigned
