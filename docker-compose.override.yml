@@ -28,7 +28,7 @@ services:
       - app-network
 
   mlflow:
-    image: ghcr.io/mlflow/mlflow:latest
+    image: ghcr.io/mlflow/mlflow:v2.17.0
     ports:
       - "5000:5000"
     volumes:

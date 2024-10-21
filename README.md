@@ -137,15 +137,15 @@ $ docker stop $(docker ps -a -q)
     - `AWS_S3_ZENML_BUCKET_NAME`
     - `AWS_S3_MLFLOW_BUCKET_NAME`
 2. Create the following GitHub Actions secret variables in the GitHub repository:
-    - `ZENML_USERNAME`
-    - `ZENML_PASSWORD`
-    - `MLFLOW_USERNAME`
-    - `MLFLOW_PASSWORD`
+    - `ZENML_USERNAME`: The username for the ZenML Server
+    - `ZENML_PASSWORD`: The password for the ZenML Server
+    - `MLFLOW_USERNAME`: The username for the MLflow Tracking Server
+    - `MLFLOW_PASSWORD`: The password for the MLflow Tracking Server
+    - `AWS_MLFLOW_ARTIFACT_S3_ACCESS_KEY`: The AWS access key for using S3 as MLflow artifact store
+    - `AWS_MLFLOW_ARTIFACT_S3_SECRET_KEY`: The AWS secret key for using S3 as MLflow artifact store
 
 
-TODO: Add create .tfvars and run terraform with it
-TODO: Add mlflow-artifact-S3-access-key and mlflow-artifact-S3-secret-key
-TODO: Fill description of variables & secrets
+TODO: Add for local deployment, create .tfvars and run terraform with it
 TODO: Add comment about being able to create or destroy infrastructure with TF through the Github action pipelines
 
 ## ➡️ Next Steps
