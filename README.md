@@ -41,11 +41,11 @@ The project consists of several components, including the frontend (Node.js), ba
 
 - **Infrastructure**: The project’s infrastructure is managed using `Terraform` and is hosted across `Digital Ocean` and `AWS`. Digital Ocean is used to host the application, including components like droplets, domain management, and firewall configurations. AWS is employed for the ZenML MLOps framework components.
 
-- **CI/CD Pipelines**: `GitHub Actions` is utilized to manage CI/CD pipelines, with `Docker Compose` orchestrating the environment. Currently there are two pipelines: one for deploying the Digital Ocean infrastructure and another for deploying the sermadrid web application (frontend and backend). Next steps include building a CI/CD pipeline for deployment of ZenML infrastructure, server, and pipelines.
+- **CI/CD Pipelines**: `GitHub Actions` is utilized to manage CI/CD pipelines, with `Docker Compose` orchestrating the environment. There are three pipelines: one for deploying the Digital Ocean infrastructure, another for deploying the sermadrid web application (frontend and backend) and the last one to deploy the Machine Learning infrastructure (ZenML server & stack and MLFlow server). 
 
-- **MLOps Framework**: `ZenML` is the chosen framework for orchestrating the machine learning training workflows. ZenML supports environment-agnostic execution, allowing the workflows to run both locally and on AWS. The AWS stack components are created through the Terraform scripts located in the *infrastructure/zenml* directory. The project relies on the two ZenML pipelines defined: "feature engineering" and "training", each of them containing multiple steps which process the raw data and train the Time Series models that power sermadrid.
+- **MLOps Framework**: `ZenML` is the chosen framework for orchestrating the machine learning training workflows. ZenML supports environment-agnostic execution, allowing the workflows to run both locally and on AWS. The AWS stack components are created through the Terraform code located in the *infrastructure/zenml* directory. The project relies on the two ZenML pipelines defined: "feature engineering" and "training", each of them containing multiple steps which process the raw data and train the Time Series models that power sermadrid.
 
-- **Experiment Tracking & Model Registry**: `MLFlow` is integrated as part of the AWS infrastructure, with the setup of its server defined in the *infrastructure/zenml* directory. MLFlow handles experiment tracking and model registry. Next steps include including MLFlow into the ZenML pipelines to track experiments and register models, as well as enabling direct loading of models from MLFlow into the backend.
+- **Experiment Tracking & Model Registry**: `MLFlow` is used to handle experiment tracking and model registry. The setup of its server is created through Terraform. The experiment tracking and model registry with MLFlow is integrated into the ZenML pipelines and the direct loading of models from MLFlow is integrated in the backend at startup.
 
 ## 📥 Input Data
 
@@ -95,6 +95,8 @@ Afterwards, to stop all the running containers, run:
 $ docker stop $(docker ps -a -q) 
 ```
 
+TODO: Update local deployment with ZenML & MLflow services
+
 ### Remote deployment
 
 **App Infrastructure**
@@ -115,7 +117,7 @@ $ docker stop $(docker ps -a -q)
     - `AWS_S3_BUCKET_NAME`: Name to give to the AWS S3 bucket
     - `AWS_REGION`: Region to use for the AWS S3 bucket
     - `DOMAIN_NAME`: Registered website domain name
-9. Run GitHub actions `deploy-infrastructure.yml` workflow to create the project's infrastructure
+9. Run GitHub actions `deploy-app-infrastructure.yml` workflow to create the project's app infrastructure
 
 **App**
 
@@ -141,16 +143,15 @@ $ docker stop $(docker ps -a -q)
     - `ZENML_PASSWORD`: The password for the ZenML Server
     - `MLFLOW_USERNAME`: The username for the MLflow Tracking Server
     - `MLFLOW_PASSWORD`: The password for the MLflow Tracking Server
+3. Run GitHub actions `deploy-ml-infrastructure.yml` workflow to create the project's ML infrastructure. In the outputs you will obtain the URLs of boths the ZenML server UI and the MLFlow server UI
+4. Visit the the ZenML server UI URL and follow the on-screen instructions to create an initial admin user account
 
-
-TODO: Add for local deployment, create .tfvars and run terraform with it
 TODO: Add comment about being able to create or destroy infrastructure with TF through the Github action pipelines
 
 ## ➡️ Next Steps
 
 `sermadrid` is under active development, with the following next steps planned:
 
-* **ZenML Infrastructure Deployment**: Implement a `GitHub Actions` pipeline to deploy the `ZenML` infrastructure on `AWS`, including the `MLFlow` server, utilizing the existing Terraform code in `infrastructure/zenml`.
 * **ZenML Pipelines Deployment**: Create a GitHub Actions pipeline to register `ZenML` pipelines on the remote AWS server and automate their execution using AWS Lambda functions.
 * **MLFlow ZenML Integration**: Integrate `MLFlow` for experiment tracking and model registry within the ZenML pipelines to streamline model management.
 * **MLFlow Backend Integration**: Update the backend to load models on startup directly from the `MLFlow API` instead of the current S3 bucket, ensuring the use of the latest production models.

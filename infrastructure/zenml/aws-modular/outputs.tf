@@ -154,7 +154,7 @@ output "mlflow-tracking-URL" {
   value = var.enable_experiment_tracker_mlflow ? module.mlflow[0].mlflow-tracking-URL : null
 }
 output "mlflow-bucket" {
-  value = (var.enable_experiment_tracker_mlflow && var.mlflow_bucket == "") ? "mlflow-s3-${random_string.mlflow_bucket_suffix.result}" : ""
+  value = var.mlflow_bucket
 }
 
 # output for seldon model deployer

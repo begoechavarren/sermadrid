@@ -58,15 +58,17 @@ variable "region" {
 # variables for the MLflow tracking server
 variable "mlflow-username" {
   description = "The username for the MLflow Tracking Server"
+  default     = "admin"
   type        = string
 }
 variable "mlflow-password" {
   description = "The password for the MLflow Tracking Server"
+  default     = "supersafepassword"
   type        = string
 }
 variable "mlflow_bucket" {
   description = "The name of the S3 bucket to use for MLflow artifact store"
-  default     = "mlflow"
+  default     = ""
 }
 
 # variables for creating a ZenML stack configuration file

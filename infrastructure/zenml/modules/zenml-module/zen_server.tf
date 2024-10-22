@@ -1,11 +1,11 @@
-# create the ZenML Server deployment
+# Create the ZenML Server deployment
 resource "kubernetes_namespace" "zen-server" {
   metadata {
     name = var.namespace
   }
 }
 
-# pull the ZenML helm chart from github
+# Pull the ZenML helm chart from github
 resource "null_resource" "fetch_chart" {
 
   triggers = {
@@ -117,7 +117,7 @@ resource "helm_release" "zen-server" {
     type  = "string"
   }
 
-  # set parameters for the mysql database
+  # Set parameters for the mysql database
   set_sensitive {
     name  = "zenml.database.url"
     value = var.database_url
