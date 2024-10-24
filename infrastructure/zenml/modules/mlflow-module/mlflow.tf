@@ -156,6 +156,20 @@ resource "helm_release" "mlflow-tracking" {
     value = var.artifact_GCS_Bucket
     type  = "string"
   }
+
+  set {
+    name  = "image.repository"
+    value = "ghcr.io/mlflow/mlflow"
+    type  = "string"
+  }
+
+  set {
+    name  = "image.tag"
+    value = var.image_version
+    type  = "string"
+  }
+
+
   depends_on = [
     resource.kubernetes_namespace.mlflow
   ]

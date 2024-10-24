@@ -184,6 +184,9 @@ data/
 terraform.tfstate.backup
 .github/workflows/build_and_deploy_to_aws_ecs.yml
 .tfvars
+**/helm/
+aws_modular_stack_*.yaml
+
 
 # ZenML
 **/.zen/

@@ -8,6 +8,11 @@ variable "chart_version" {
   default = "0.7.13"
 }
 
+variable "image_version" {
+  type    = string
+  default = "v2.17.0"
+}
+
 variable "htpasswd" {}
 
 variable "ingress_host" {

@@ -50,7 +50,8 @@ locals {
   }
 
   mlflow = {
-    version                 = "0.7.13"
+    chart_version           = "0.7.13"
+    image_version           = "v2.17.0"
     artifact_Proxied_Access = "false"
     artifact_S3             = "true"
 
