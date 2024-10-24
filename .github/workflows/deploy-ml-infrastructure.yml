@@ -117,7 +117,7 @@ jobs:
         if: github.event.inputs.aws_modular_action == 'apply'
         id: get_mlflow_url
         run: |
-          MLFLOW_URL=$(terraform output -raw mlflow-tracking-URL)
+          MLFLOW_URL=$(terraform output -raw mlflow-tracking-URL | tr -d '\n')
           echo "url=$MLFLOW_URL" >> $GITHUB_OUTPUT
           gh variable set MLFLOW_TRACKING_URL --body "$MLFLOW_URL"
         env:

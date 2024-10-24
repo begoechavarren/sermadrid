@@ -7,13 +7,17 @@ resource "kubernetes_namespace" "zen-server" {
 
 # Pull the ZenML helm chart from github
 resource "null_resource" "fetch_chart" {
-
   triggers = {
+    # Add timestamp to ensure it runs on every apply
+    always_run = timestamp()
     zenml_branch = var.chart_version == "" ? "main" : (length(regexall("^([0-9]+)\\.([0-9]+)\\.([0-9]+)$", var.chart_version)) == 0 ? var.chart_version : "release/${var.chart_version}")
   }
 
   provisioner "local-exec" {
-    command = "git clone --depth 1 --branch ${self.triggers.zenml_branch} https://github.com/zenml-io/zenml.git ${path.root}/helm"
+    command = <<-EOT
+      rm -rf ${path.root}/helm || true
+      git clone --depth 1 --branch ${self.triggers.zenml_branch} https://github.com/zenml-io/zenml.git ${path.root}/helm
+    EOT
   }
 
   provisioner "local-exec" {
@@ -23,7 +27,6 @@ resource "null_resource" "fetch_chart" {
 }
 
 resource "local_file" "db_ca_cert" {
-
   count = (var.database_url != "" && var.database_ssl_ca != "") ? 1 : 0
 
   source   = var.database_ssl_ca
@@ -35,7 +38,6 @@ resource "local_file" "db_ca_cert" {
 }
 
 resource "local_file" "db_client_cert" {
-
   count = (var.database_url != "" && var.database_ssl_cert != "") ? 1 : 0
 
   source   = var.database_ssl_cert
@@ -47,7 +49,6 @@ resource "local_file" "db_client_cert" {
 }
 
 resource "local_file" "db_client_key" {
-
   count = (var.database_url != "" && var.database_ssl_key != "") ? 1 : 0
 
   source   = var.database_ssl_key
@@ -59,11 +60,9 @@ resource "local_file" "db_client_key" {
 }
 
 resource "helm_release" "zen-server" {
-
   name      = "zenml-server"
   chart     = "${path.root}/helm/src/zenml/zen_server/deploy/helm"
   namespace = kubernetes_namespace.zen-server.metadata[0].name
-
 
   set {
     name  = "zenml.image.tag"
@@ -143,6 +142,7 @@ resource "helm_release" "zen-server" {
     value = var.database_ssl_verify_server_cert
     type  = "auto"
   }
+
   depends_on = [
     null_resource.fetch_chart,
     local_file.db_ca_cert,
