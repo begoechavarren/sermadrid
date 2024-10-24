@@ -20,6 +20,9 @@ on:
         - apply
         - destroy
 
+permissions:
+  actions: write
+
 env:
   TF_VAR_region: '${{ vars.AWS_REGION }}'
   TF_VAR_remote_state_bucket_name: '${{ vars.AWS_S3_REMOTE_STATE_BUCKET_NAME }}'
@@ -108,6 +111,17 @@ jobs:
       - name: Terraform Apply
         if: github.event.inputs.aws_modular_action == 'apply'
         run: terraform apply -auto-approve
+        working-directory: ./infrastructure/zenml/aws-modular
+
+      - name: Get MLFlow URL
+        if: github.event.inputs.aws_modular_action == 'apply'
+        id: get_mlflow_url
+        run: |
+          MLFLOW_URL=$(terraform output -raw mlflow-tracking-URL)
+          echo "url=$MLFLOW_URL" >> $GITHUB_OUTPUT
+          gh variable set MLFLOW_TRACKING_URL --body "$MLFLOW_URL"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         working-directory: ./infrastructure/zenml/aws-modular
 
       - name: Terraform Destroy
