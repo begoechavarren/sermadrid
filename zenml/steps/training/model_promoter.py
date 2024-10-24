@@ -2,15 +2,13 @@ import json
 import tempfile
 from uuid import UUID
 
-import boto3
 import cloudpickle
-from zenml import step
-from zenml.client import Client
-from zenml.logger import get_logger
-
 import mlflow
 import mlflow.pyfunc
 from mlflow.tracking import MlflowClient
+from zenml import step
+from zenml.client import Client
+from zenml.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -19,13 +17,10 @@ logger = get_logger(__name__)
 def model_promoter(
     trained_models: dict,
     spaces_clean_version_id: UUID,
-    bucket_name: str,
-    models_object_key: str,
-    spaces_object_key: str,
     mlflow_experiment_name: str = "model_promotion",
     mlflow_run_name: str = "production_model",
 ) -> None:
-    """Model promoter step. Upload the model to AWS S3 and MLflow."""
+    """Model promoter step. Upload the model MLflow."""
 
     import os
 
@@ -44,8 +39,6 @@ def model_promoter(
 
     spaces_clean_artifact_version = client.get_artifact_version(spaces_clean_version_id)
     spaces_clean = spaces_clean_artifact_version.load()
-
-    s3 = boto3.client("s3")
 
     # Set up MLflow
     mlflow.set_experiment(mlflow_experiment_name)
@@ -80,17 +73,6 @@ def model_promoter(
                 with open(temp_file_path, "wb") as f:
                     cloudpickle.dump(model, f)
 
-                # Upload the file to S3
-                s3_key = f"{models_object_key}/{model_name}.pkl"
-                try:
-                    s3.upload_file(temp_file_path, bucket_name, s3_key)
-                    logger.info(
-                        f"Successfully uploaded model {model_name} to S3 bucket {bucket_name} with key {s3_key}"
-                    )
-                except Exception as e:
-                    logger.error(f"Failed to upload model {model_name} to S3: {str(e)}")
-                    logger.exception("Full traceback:")
-
                 # Log model to MLflow
                 try:
                     logger.info(f"Starting to log model {model_name} to MLflow")
@@ -114,15 +96,6 @@ def model_promoter(
                     )[0]
 
                     # Add tags to the model version
-                    mlflow_client.set_model_version_tag(
-                        name=str(model_name),
-                        version=latest_version.version,
-                        key="s3_path",
-                        value={
-                            "bucket_name": bucket_name,
-                            "s3_key": s3_key,
-                        },
-                    )
                     mlflow_client.set_model_version_tag(
                         name=str(model_name),
                         version=latest_version.version,
@@ -152,25 +125,11 @@ def model_promoter(
                 with open(spaces_file_path, "w") as f:
                     json.dump(spaces_clean, f)
 
-                # Upload to S3
-                try:
-                    s3.upload_file(spaces_file_path, bucket_name, spaces_object_key)
-                    logger.info(
-                        f"Successfully uploaded spaces_clean data to S3 bucket {bucket_name} with key {spaces_object_key}"
-                    )
-                except Exception as e:
-                    logger.error(f"Failed to upload spaces_clean data to S3: {str(e)}")
-                    logger.exception("Full traceback:")
-
                 # Log to MLflow as an artifact
                 mlflow.log_artifact(spaces_file_path, "spaces_clean")
                 logger.info(
                     "Successfully logged spaces_clean data to MLflow as an artifact"
                 )
-
-                # Log S3 path as a parameter
-                mlflow.log_param("spaces_clean_s3_bucket", bucket_name)
-                mlflow.log_param("spaces_clean_s3_key", spaces_object_key)
 
                 # Tag this run as the production version for spaces_clean
                 mlflow_client.set_tag(
