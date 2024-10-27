@@ -20,6 +20,7 @@ workalendar = "17.0.0"
 cloudpickle = "^2.2.1" 
 sermadrid = { path = "../sermadrid" }
 mlflow = ">=2.1.1,<=2.14.2"
+boto3 = "^1.34.100"
 
 [tool.poetry.dev-dependencies]
 ruff = "0.1.2"
