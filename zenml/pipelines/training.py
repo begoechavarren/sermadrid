@@ -67,4 +67,8 @@ def training(
     model_promoter(
         trained_models=trained_models,
         spaces_clean_version_id=spaces_clean_version.id,
+        bucket_name="sermadrid",
+        # TODO: Rename to output/models/
+        models_object_key="data/models",
+        spaces_object_key="data/input/spaces_clean.json",
     )
