@@ -5,6 +5,7 @@ services:
       dockerfile: backend/backend.dockerfile
     environment:
       BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
+      MLFLOW_TRACKING_URI: ${MLFLOW_TRACKING_URI}
     volumes:
       - ./backend/app:/code/app
     ports:

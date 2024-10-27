@@ -7,7 +7,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from app.app.api.v1.router import api_router
 from app.app.core.config import settings
-from app.app.core.dependencies import is_data_loaded, try_load_data
+from app.app.core.dependencies import is_data_loaded, load_data
 
 
 async def retry_load_data(duration_hours: int = 12, retry_delay: int = 10):
@@ -15,7 +15,7 @@ async def retry_load_data(duration_hours: int = 12, retry_delay: int = 10):
     attempt = 1
 
     while time.time() < end_time:
-        if try_load_data():
+        if load_data():
             print("Data loaded successfully")
             return
         print(f"Attempt {attempt} failed. Retrying in {retry_delay} seconds...")

@@ -76,6 +76,17 @@ jobs:
     - name: Copy files to server
       run: scp -r ./* ${{ secrets.DO_DROPLET_USER }}@${{ secrets.DO_DROPLET_IP }}:${{ env.APP_PATH }}
 
+    - name: Download MLFlow URL artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: mlflow-url
+        path: .
+    
+    - name: Set MLFlow URL from artifact
+      run: |
+        MLFLOW_URL=$(cat mlflow-url.txt)
+        echo "MLFLOW_URL=$MLFLOW_URL" >> $GITHUB_ENV
+    
     - name: Export environment variables
       uses: appleboy/ssh-action@master
       with:
@@ -87,6 +98,7 @@ jobs:
           echo DOMAIN_NAME=${{ env.DOMAIN_NAME }} >> ${{ env.APP_PATH }}/.env
           echo MAPBOX_TOKEN=${{ secrets.MAPBOX_TOKEN }} >> ${{ env.APP_PATH }}/.env
           echo CERTBOT_EMAIL=${{ secrets.CERTBOT_EMAIL }} >> ${{ env.APP_PATH }}/.env
+          echo MLFLOW_TRACKING_URI=${{ env.MLFLOW_URL }} >> ${{ env.APP_PATH }}/.env
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1

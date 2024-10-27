@@ -10,7 +10,7 @@ spaces_dict: Dict[str, Any] = {}
 data_loaded: bool = False
 
 
-def try_load_data() -> bool:
+def load_data() -> bool:
     global models, spaces_dict, data_loaded
 
     try:
