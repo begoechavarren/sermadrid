@@ -99,6 +99,23 @@ TODO: Update local deployment with ZenML & MLflow services
 
 ### Remote deployment
 
+**ML Infrastructure**
+
+1. Create the following GitHub Actions variables in the GitHub repository:
+    - `AWS_S3_REMOTE_STATE_BUCKET_NAME`: Name to give to the AWS S3 bucket used for the Terraform remote state of this infrastructure stack
+    - `AWS_S3_ZENML_BUCKET_NAME`
+    - `AWS_S3_MLFLOW_BUCKET_NAME`
+2. Create the following GitHub Actions secret variables in the GitHub repository:
+    - `ZENML_USERNAME`: The username for the ZenML Server
+    - `ZENML_PASSWORD`: The password for the ZenML Server
+    - `MLFLOW_USERNAME`: The username for the MLflow Tracking Server
+    - `MLFLOW_PASSWORD`: The password for the MLflow Tracking Server
+    - `GH_PAT`: GitHub Personal Access Token (obtained in GitHub > Settings > Developer Settings > Personal Access Tokens > Fine-grained tokens - Create a token with "Read access to actions and metadata repository permissions")
+3. Run GitHub actions `deploy-ml-infrastructure.yml` workflow to create the project's ML infrastructure. In the outputs you will obtain the URLs of boths the ZenML server UI and the MLFlow server UI
+4. Visit the the ZenML server UI URL and follow the on-screen instructions to create an initial admin user account
+
+TODO: Add comment about being able to create or destroy infrastructure with TF through the Github action pipelines
+
 **App Infrastructure**
 
 1. Create a Digital Ocean account
@@ -131,22 +148,6 @@ TODO: Update local deployment with ZenML & MLflow services
 4. Create the following GitHub Actions variables in the GitHub repository:
     - `BACKEND_CORS_ORIGINS`: A comma-separated list of origins allowed to access the backend to configure the CORS policy (in this case just the frontend: *["http://{DO_DROPLET_IP}", "http://{DOMAIN_NAME}", "http://www.{DOMAIN_NAME}"]*)
 5. Run GitHub actions `deploy-app.yml` workflow to deploy the app
-
-**ML Infrastructure**
-
-1. Create the following GitHub Actions variables in the GitHub repository:
-    - `AWS_S3_REMOTE_STATE_BUCKET_NAME`: Name to give to the AWS S3 bucket used for the Terraform remote state of this infrastructure stack
-    - `AWS_S3_ZENML_BUCKET_NAME`
-    - `AWS_S3_MLFLOW_BUCKET_NAME`
-2. Create the following GitHub Actions secret variables in the GitHub repository:
-    - `ZENML_USERNAME`: The username for the ZenML Server
-    - `ZENML_PASSWORD`: The password for the ZenML Server
-    - `MLFLOW_USERNAME`: The username for the MLflow Tracking Server
-    - `MLFLOW_PASSWORD`: The password for the MLflow Tracking Server
-3. Run GitHub actions `deploy-ml-infrastructure.yml` workflow to create the project's ML infrastructure. In the outputs you will obtain the URLs of boths the ZenML server UI and the MLFlow server UI
-4. Visit the the ZenML server UI URL and follow the on-screen instructions to create an initial admin user account
-
-TODO: Add comment about being able to create or destroy infrastructure with TF through the Github action pipelines
 
 ## ➡️ Next Steps
 
