@@ -43,7 +43,7 @@ The project consists of several components, including the frontend (Node.js), ba
 
 - **CI/CD Pipelines**: `GitHub Actions` is utilized to manage CI/CD pipelines, with `Docker Compose` orchestrating the environment. There are three pipelines: one for deploying the Digital Ocean infrastructure, another for deploying the sermadrid web application (frontend and backend) and the last one to deploy the Machine Learning infrastructure (ZenML server & stack and MLFlow server). 
 
-- **MLOps Framework**: `ZenML` is the chosen framework for orchestrating the machine learning training workflows. ZenML supports environment-agnostic execution, allowing the workflows to run both locally and on AWS. The AWS stack components are created through the Terraform code located in the *infrastructure/zenml* directory. The project relies on the two ZenML pipelines defined: "feature engineering" and "training", each of them containing multiple steps which process the raw data and train the Time Series models that power sermadrid.
+- **MLOps Framework**: `ZenML` is the chosen framework for orchestrating the machine learning training workflows. ZenML supports environment-agnostic execution, allowing the workflows to run both locally and on AWS. The AWS stack components are created through the Terraform code located in the *infrastructure/zenml* directory. The project relies on the two ZenML pipelines defined: "feature engineering" and "training", each of them containing multiple steps which process the raw data and train the Time Series models that power sermadrid. TODO: Describe the current ZenML stack components
 
 - **Experiment Tracking & Model Registry**: `MLFlow` is used to handle experiment tracking and model registry. The setup of its server is created through Terraform. The experiment tracking and model registry with MLFlow is integrated into the ZenML pipelines and the direct loading of models from MLFlow is integrated in the backend at startup.
 
@@ -115,6 +115,7 @@ TODO: Update local deployment with ZenML & MLflow services
 4. Visit the the ZenML server UI URL and follow the on-screen instructions to create an initial admin user account
 
 TODO: Add comment about being able to create or destroy infrastructure with TF through the Github action pipelines
+TODO: Add comment about retrieving the MLFlow URL & S3 & ZenML from outputs & interacting
 
 **App Infrastructure**
 
@@ -148,6 +149,8 @@ TODO: Add comment about being able to create or destroy infrastructure with TF t
 4. Create the following GitHub Actions variables in the GitHub repository:
     - `BACKEND_CORS_ORIGINS`: A comma-separated list of origins allowed to access the backend to configure the CORS policy (in this case just the frontend: *["http://{DO_DROPLET_IP}", "http://{DOMAIN_NAME}", "http://www.{DOMAIN_NAME}"]*)
 5. Run GitHub actions `deploy-app.yml` workflow to deploy the app
+
+TODO: Add comment about the CICD retrieving the mlflow server from latest ML Infrastructure GitHub actions workflow
 
 ## ➡️ Next Steps
 

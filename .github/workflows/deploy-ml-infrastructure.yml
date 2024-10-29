@@ -29,6 +29,7 @@ env:
   TF_VAR_zenml-password: '${{ secrets.ZENML_PASSWORD }}'
   TF_VAR_mlflow-username: '${{ secrets.MLFLOW_USERNAME }}'
   TF_VAR_mlflow-password: '${{ secrets.MLFLOW_PASSWORD }}'
+  TF_VAR_repo_name: 'zenml'
 
 jobs:
   deploy_remote_state:
@@ -128,3 +129,84 @@ jobs:
         if: github.event.inputs.aws_modular_action == 'destroy'
         run: terraform destroy -auto-approve
         working-directory: ./infrastructure/zenml/aws-modular
+
+  build_and_push_zenml_pipeline_image:
+    name: Build and Push ZenML Pipeline Image
+    needs: deploy_aws_modular
+    runs-on: ubuntu-latest
+    if: github.event.inputs.aws_modular_action == 'apply'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and push ZenML pipeline image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ env.TF_VAR_repo_name }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build \
+            --build-arg AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
+            --build-arg AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+            --build-arg AWS_REGION=${{ env.TF_VAR_region }} \
+            --build-arg S3_BUCKET_NAME=${{ vars.AWS_S3_ZENML_BUCKET_NAME }} \
+            --build-arg ZENML_STACK_ENV=production \
+            --build-arg PARKINGS_S3_DATA_PATH=data/parkings \
+            --build-arg SPACES_S3_DATA_PATH=data/spaces \
+            -f zenml/zenml.dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          echo "IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:latest" >> $GITHUB_ENV
+
+  # deploy_lambda_trigger:
+  #   name: Deploy Lambda Trigger
+  #   needs: build_and_push_zenml_pipeline_image
+  #   runs-on: ubuntu-latest
+  #   if: github.event.inputs.aws_modular_action == 'apply'
+
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v2
+
+  #     - name: Setup Terraform
+  #       uses: hashicorp/setup-terraform@v1
+
+  #     - name: Configure AWS Credentials
+  #       uses: aws-actions/configure-aws-credentials@v1
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: ${{ vars.AWS_REGION }}
+  
+  #     - name: Terraform Init
+  #       run: |
+  #         terraform init \
+  #           -backend-config="bucket=${{ vars.AWS_S3_REMOTE_STATE_BUCKET_NAME }}" \
+  #           -backend-config="region=${{ env.TF_VAR_region }}"
+  #       working-directory: ./infrastructure/zenml/aws-lambda
+
+  #     - name: Terraform Plan
+  #       run: terraform plan
+  #       working-directory: ./infrastructure/zenml/aws-lambda
+
+  #     - name: Terraform Apply
+  #       run: terraform apply -auto-approve
+  #       working-directory: ./infrastructure/zenml/aws-lambda
+
+  #     - name: Terraform Destroy
+  #       if: github.event.inputs.aws_modular_action == 'destroy'
+  #       run: terraform destroy -auto-approve
+  #       working-directory: ./infrastructure/zenml/aws-lambda
