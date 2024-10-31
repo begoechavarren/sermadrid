@@ -75,6 +75,10 @@ locals {
     ingress_host_prefix             = "zenml"
     ingress_tls                     = true
     image_tag                       = ""
+    stacks = {
+      sermadrid =  "sermadrid"
+    }
+    
   }
 
   common_tags = {
