@@ -125,6 +125,23 @@ jobs:
           name: mlflow-url
           path: ./infrastructure/zenml/aws-modular/mlflow-url.txt
 
+      - name: Set ZenML URL
+        if: github.event.inputs.aws_modular_action == 'apply'
+        run: |
+          URL=$(terraform output -raw zenml-url | grep -o 'https://[^[:space:]]*\.nip\.io' | head -n 1)
+          echo "Raw URL extracted: $URL"
+          echo "$URL" > zenml-url.txt
+          echo "ZENML_URL=$URL" >> $GITHUB_ENV
+        id: get_zenml_url
+        working-directory: ./infrastructure/zenml/aws-modular
+  
+      - name: Upload ZenML URL
+        if: github.event.inputs.aws_modular_action == 'apply'
+        uses: actions/upload-artifact@v4
+        with:
+          name: zenml-url
+          path: ./infrastructure/zenml/aws-modular/zenml-url.txt
+    
       - name: Terraform Destroy
         if: github.event.inputs.aws_modular_action == 'destroy'
         run: terraform destroy -auto-approve
@@ -147,6 +164,16 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.AWS_REGION }}
 
+      - name: Download ZenML URL artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: zenml-url
+  
+      - name: Set ZenML URL from artifact
+        run: |
+          ZENML_URL=$(cat zenml-url.txt)
+          echo "ZENML_URL=$ZENML_URL" >> $GITHUB_ENV
+    
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
@@ -157,6 +184,8 @@ jobs:
           ECR_REPOSITORY: ${{ env.TF_VAR_repo_name }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
+          echo "Building with ZenML URL: ${ZENML_URL}"
+          
           docker build \
             --build-arg AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
             --build-arg AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
@@ -165,11 +194,14 @@ jobs:
             --build-arg ZENML_STACK_ENV=production \
             --build-arg PARKINGS_S3_DATA_PATH=data/parkings \
             --build-arg SPACES_S3_DATA_PATH=data/spaces \
+            --build-arg ZENML_SERVER_URL="${{ env.ZENML_URL }}" \
+            --build-arg ZENML_USERNAME="${{ env.TF_VAR_zenml-username }}" \
+            --build-arg ZENML_PASSWORD="${{ env.TF_VAR_zenml-password }}" \
             -f zenml/zenml.dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          echo "IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:latest" >> $GITHUB_ENV
 
   # deploy_lambda_trigger:
   #   name: Deploy Lambda Trigger
@@ -195,18 +227,31 @@ jobs:
   #       run: |
   #         terraform init \
   #           -backend-config="bucket=${{ vars.AWS_S3_REMOTE_STATE_BUCKET_NAME }}" \
-  #           -backend-config="region=${{ env.TF_VAR_region }}"
+  #           -backend-config="region=${{ vars.AWS_REGION }}"
   #       working-directory: ./infrastructure/zenml/aws-lambda
 
   #     - name: Terraform Plan
+  #       env:
+  #         TF_VAR_region: ${{ vars.AWS_REGION }}
+  #         TF_VAR_remote_state_bucket_name: ${{ vars.AWS_S3_REMOTE_STATE_BUCKET_NAME }}
+  #         TF_VAR_input_bucket: ${{ vars.AWS_S3_ZENML_BUCKET_NAME }}
   #       run: terraform plan
   #       working-directory: ./infrastructure/zenml/aws-lambda
 
   #     - name: Terraform Apply
+  #       if: github.event.inputs.aws_modular_action == 'apply'
+  #       env:
+  #         TF_VAR_region: ${{ vars.AWS_REGION }}
+  #         TF_VAR_remote_state_bucket_name: ${{ vars.AWS_S3_REMOTE_STATE_BUCKET_NAME }}
+  #         TF_VAR_input_bucket: ${{ vars.AWS_S3_ZENML_BUCKET_NAME }}
   #       run: terraform apply -auto-approve
   #       working-directory: ./infrastructure/zenml/aws-lambda
 
   #     - name: Terraform Destroy
   #       if: github.event.inputs.aws_modular_action == 'destroy'
+  #       env:
+  #         TF_VAR_region: ${{ vars.AWS_REGION }}
+  #         TF_VAR_remote_state_bucket_name: ${{ vars.AWS_S3_REMOTE_STATE_BUCKET_NAME }}
+  #         TF_VAR_input_bucket: ${{ vars.AWS_S3_ZENML_BUCKET_NAME }}
   #       run: terraform destroy -auto-approve
   #       working-directory: ./infrastructure/zenml/aws-lambda

@@ -75,6 +75,7 @@ locals {
     ingress_host_prefix             = "zenml"
     ingress_tls                     = true
     image_tag                       = ""
+    service_account_name            = "sermadrid"
     stacks = {
       sermadrid =  "sermadrid"
     }

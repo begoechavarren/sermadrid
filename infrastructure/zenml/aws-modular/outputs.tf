@@ -206,3 +206,17 @@ output "zenml-url" {
 output "zenml-username" {
   value = var.enable_zenml ? module.zenml[0].username : null
 }
+
+# resource "null_resource" "api_key_ready" {
+#   triggers = {
+#     api_key = "${null_resource.zenml_stack[0].id}"
+#   }
+# }
+
+# output "zenml_api_key" {
+#   value       = chomp(file("${path.module}/zenml_api_key.txt"))
+#   description = "The API key for ZenML service account"
+#   sensitive   = true
+
+#   depends_on = [null_resource.api_key_ready]
+# }
