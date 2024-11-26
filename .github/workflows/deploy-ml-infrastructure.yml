@@ -150,11 +150,11 @@ jobs:
           fi
           
           echo "Retrieved API Key: ${ZENML_API_KEY}"
-          echo "$ZENML_API_KEY" > zenml_api_key.txt
+          echo "$ZENML_API_KEY" > zenml-api-key.txt
           
           # Verify the file was created and has content
-          if [ ! -s zenml_api_key.txt ]; then
-            echo "Error: zenml_api_key.txt is empty or was not created"
+          if [ ! -s zenml-api-key.txt ]; then
+            echo "Error: zenml-api-key.txt is empty or was not created"
             exit 1
           fi
           
@@ -165,8 +165,8 @@ jobs:
         if: github.event.inputs.aws_modular_action == 'apply'
         uses: actions/upload-artifact@v4
         with:
-          name: zenml_api_key
-          path: ./infrastructure/zenml/aws-modular/zenml_api_key.txt
+          name: zenml-api-key
+          path: ./infrastructure/zenml/aws-modular/zenml-api-key.txt
 
       - name: Set ZenML URL
         if: github.event.inputs.aws_modular_action == 'apply'
@@ -207,6 +207,16 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.AWS_REGION }}
 
+      - name: Download ZenML API Key artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: zenml-api-key
+  
+      - name: Set ZenML API Key from artifact
+        run: |
+          ZENML_API_KEY=$(cat zenml-api-key.txt)
+          echo "ZENML_API_KEY=$ZENML_API_KEY" >> $GITHUB_ENV
+    
       - name: Download ZenML URL artifact
         uses: actions/download-artifact@v4
         with:
@@ -216,7 +226,7 @@ jobs:
         run: |
           ZENML_URL=$(cat zenml-url.txt)
           echo "ZENML_URL=$ZENML_URL" >> $GITHUB_ENV
-    
+
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
@@ -237,9 +247,8 @@ jobs:
             --build-arg ZENML_STACK_ENV=production \
             --build-arg PARKINGS_S3_DATA_PATH=data/parkings \
             --build-arg SPACES_S3_DATA_PATH=data/spaces \
+            --build-arg ZENML_API_KEY="${{ env.ZENML_API_KEY }}" \
             --build-arg ZENML_SERVER_URL="${{ env.ZENML_URL }}" \
-            --build-arg ZENML_USERNAME="${{ env.TF_VAR_zenml-username }}" \
-            --build-arg ZENML_PASSWORD="${{ env.TF_VAR_zenml-password }}" \
             -f zenml/zenml.dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG

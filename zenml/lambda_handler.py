@@ -1,4 +1,3 @@
-# lambda_handler.py
 import json
 import logging
 import os
