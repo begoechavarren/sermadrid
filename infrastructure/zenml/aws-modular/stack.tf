@@ -45,7 +45,9 @@ resource "null_resource" "zenml_stack" {
       
       echo "Successfully retrieved ZenML API key"
       echo "ZenML API Key: $ZENML_API_KEY"
-      # echo "$ZENML_API_KEY" > zenml_api_key.txt
+
+      # Store the API key in a file for Terraform to read
+      echo -n "$ZENML_API_KEY" > ${path.module}/zenml_api_key.txt
 
       # Check if artifact store exists
       ARTIFACT_EXISTS=$(kubectl -n $ZENML_NS exec deploy/$ZENML_DEPLOY -- zenml artifact-store list | grep -q "^.*s3_artifact_store.*" && echo "yes" || echo "no")
@@ -135,4 +137,17 @@ resource "null_resource" "zenml_stack" {
     module.mlflow,
     kubernetes_namespace.k8s-workloads
   ]
+}
+
+data "local_file" "zenml_api_key" {
+  count    = var.enable_zenml ? 1 : 0
+  filename = "${path.module}/zenml_api_key.txt"
+  depends_on = [
+    null_resource.zenml_stack
+  ]
+}
+
+output "zenml-api-key" {
+  description = "ZenML API key for the service account"
+  value       = var.enable_zenml ? element(split("\n", data.local_file.zenml_api_key[0].content), 0) : null
 }

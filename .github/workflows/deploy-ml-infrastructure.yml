@@ -125,6 +125,49 @@ jobs:
           name: mlflow-url
           path: ./infrastructure/zenml/aws-modular/mlflow-url.txt
 
+      - name: Set ZenML API Key
+        if: github.event.inputs.aws_modular_action == 'apply'
+        run: |
+          # Print all terraform outputs for debugging
+          echo "All Terraform outputs:"
+          terraform output
+          
+          echo "Attempting to get ZenML API key..."
+          if ! API_KEY_OUTPUT=$(terraform output -raw zenml-api-key 2>&1); then
+            echo "Error getting terraform output: $API_KEY_OUTPUT"
+            exit 1
+          fi
+          
+          echo "Raw API key output: $API_KEY_OUTPUT"
+          
+          # Extract the ZENKEY with more robust pattern matching
+          ZENML_API_KEY=$(echo "$API_KEY_OUTPUT" | grep -o 'ZENKEY_[A-Za-z0-9+/=]*' | head -n 1)
+          
+          if [ -z "$ZENML_API_KEY" ]; then
+            echo "Failed to extract ZENKEY from output"
+            echo "Full output was: $API_KEY_OUTPUT"
+            exit 1
+          fi
+          
+          echo "Retrieved API Key: ${ZENML_API_KEY}"
+          echo "$ZENML_API_KEY" > zenml_api_key.txt
+          
+          # Verify the file was created and has content
+          if [ ! -s zenml_api_key.txt ]; then
+            echo "Error: zenml_api_key.txt is empty or was not created"
+            exit 1
+          fi
+          
+          echo "API key successfully saved to file"
+        working-directory: ./infrastructure/zenml/aws-modular
+
+      - name: Upload ZenML API Key
+        if: github.event.inputs.aws_modular_action == 'apply'
+        uses: actions/upload-artifact@v4
+        with:
+          name: zenml_api_key
+          path: ./infrastructure/zenml/aws-modular/zenml_api_key.txt
+
       - name: Set ZenML URL
         if: github.event.inputs.aws_modular_action == 'apply'
         run: |
