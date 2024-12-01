@@ -15,7 +15,7 @@ async def retry_load_data(duration_hours: int = 12, retry_delay: int = 10):
     attempt = 1
 
     while time.time() < end_time:
-        if load_data():
+        if load_data(method="s3"):
             print("Data loaded successfully")
             return
         print(f"Attempt {attempt} failed. Retrying in {retry_delay} seconds...")
