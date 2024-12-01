@@ -91,17 +91,17 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GH_PAT }}
 
-    - name: Download MLFlow URL artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: mlflow-url
-        github-token: ${{ secrets.GH_PAT }}
-        run-id: ${{ steps.get-run-id.outputs.run_id }}
+    # - name: Download MLFlow URL artifact
+    #   uses: actions/download-artifact@v4
+    #   with:
+    #     name: mlflow-url
+    #     github-token: ${{ secrets.GH_PAT }}
+    #     run-id: ${{ steps.get-run-id.outputs.run_id }}
 
-    - name: Set MLFlow URL from artifact
-      run: |
-        MLFLOW_URL=$(cat mlflow-url.txt)
-        echo "MLFLOW_URL=$MLFLOW_URL" >> $GITHUB_ENV
+    # - name: Set MLFlow URL from artifact
+    #   run: |
+    #     MLFLOW_URL=$(cat mlflow-url.txt)
+    #     echo "MLFLOW_URL=$MLFLOW_URL" >> $GITHUB_ENV
 
     - name: Export environment variables
       uses: appleboy/ssh-action@master
@@ -114,9 +114,6 @@ jobs:
           echo DOMAIN_NAME=${{ env.DOMAIN_NAME }} >> ${{ env.APP_PATH }}/.env
           echo MAPBOX_TOKEN=${{ secrets.MAPBOX_TOKEN }} >> ${{ env.APP_PATH }}/.env
           echo CERTBOT_EMAIL=${{ secrets.CERTBOT_EMAIL }} >> ${{ env.APP_PATH }}/.env
-          echo MLFLOW_TRACKING_URI=${{ env.MLFLOW_URL }} >> ${{ env.APP_PATH }}/.env
-          echo MLFLOW_TRACKING_USERNAME=${{ secrets.MLFLOW_USERNAME }} >> ${{ env.APP_PATH }}/.env
-          echo MLFLOW_TRACKING_PASSWORD=${{ secrets.MLFLOW_PASSWORD }} >> ${{ env.APP_PATH }}/.env
           echo AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} >> ${{ env.APP_PATH }}/.env
           echo AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} >> ${{ env.APP_PATH }}/.env
           echo AWS_REGION=${{ env.AWS_REGION }} >> ${{ env.APP_PATH }}/.env
