@@ -9,6 +9,13 @@ set -e
 
 echo "Starting container initialization..."
 
+# Configure AWS CLI with provided credentials
+echo "Configuring AWS CLI..."
+aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID"
+aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY"
+aws configure set region "$AWS_REGION"
+echo "AWS CLI configured successfully."
+
 # Redirect all ZenML connection output to stdout
 echo "Connecting to ZenML server at: ${ZENML_SERVER_URL}"
 zenml connect --url="${ZENML_SERVER_URL}" --api-key="${ZENML_API_KEY}"
@@ -27,6 +34,8 @@ exec python3 -m awslambdaric lambda_handler.lambda_handler
 EOF
 
 RUN chmod +x /app/start.sh
+
+RUN apt-get update && apt-get install -y awscli
 
 RUN pip install awslambdaric poetry
 
