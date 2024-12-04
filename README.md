@@ -156,8 +156,6 @@ TODO: Add comment about the CICD retrieving the mlflow server from latest ML Inf
 
 `sermadrid` is under active development, with the following next steps planned:
 
-* **ZenML Pipelines Deployment**: Create a GitHub Actions pipeline to register `ZenML` pipelines on the remote AWS server and automate their execution using AWS Lambda functions.
-* **MLFlow ZenML Integration**: Integrate `MLFlow` for experiment tracking and model registry within the ZenML pipelines to streamline model management.
-* **MLFlow Backend Integration**: Update the backend to load models on startup directly from the `MLFlow API` instead of the current S3 bucket, ensuring the use of the latest production models.
-* **Model Monitoring**: Introduce model monitoring with `Evidently` and `Grafana` to track performance metrics over time.
+* **AWS Lambda ZenML training pipeline trigger**: Automate the ZenML training pipeline execution using AWS Lambda functions as trigger when new data is loaded into the AWS S3 bucket.
+* **Model monitoring**: Introduce model monitoring with `Evidently` and `Grafana` to track performance metrics over time.
 * **Testing**: Develop unit and integration tests using `pytest` for both the FastAPI backend and the ZenML training pipelines to ensure code reliability and robustness.

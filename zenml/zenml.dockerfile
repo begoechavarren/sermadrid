@@ -9,7 +9,21 @@ set -e
 
 echo "Starting container initialization..."
 
-# Redirect all ZenML connection output to stdout
+# Export AWS credentials as environment variables
+# These will be automatically picked up by AWS SDK and tools
+export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+export AWS_DEFAULT_REGION=${AWS_REGION}
+export AWS_REGION=${AWS_REGION}
+
+# Set temp directory for any ZenML operations
+export HOME=/tmp
+export ZENML_CONFIG_PATH=/tmp/.zenconfig
+mkdir -p /tmp/.zenconfig
+
+echo "AWS credentials configured via environment variables"
+
+# ZenML setup
 echo "Connecting to ZenML server at: ${ZENML_SERVER_URL}"
 zenml connect --url="${ZENML_SERVER_URL}" --api-key="${ZENML_API_KEY}"
 echo "Listing ZenML stacks:"
@@ -20,13 +34,18 @@ echo "Final stack list:"
 zenml stack list
 echo "Register ZenML service connector"
 zenml service-connector register kube-auto --type kubernetes --auto-configure
-
+zenml artifact-store connect s3_artifact_store --connector kube-auto
+zenml container-registry connect ecr_registry --connector kube-auto
+zenml orchestrator connect k8s_orchestrator --connector kube-auto
+zenml experiment-tracker connect mlflow_tracker --connector kube-auto
 
 # Execute the Lambda handler
 exec python3 -m awslambdaric lambda_handler.lambda_handler
 EOF
 
 RUN chmod +x /app/start.sh
+
+RUN apt-get update && apt-get install -y awscli
 
 RUN pip install awslambdaric poetry
 
@@ -39,6 +58,10 @@ COPY zenml/steps ./steps
 COPY zenml/utils ./utils
 COPY zenml/lambda_handler.py ./
 
+# Create necessary directories with proper permissions
+RUN mkdir -p /tmp/.zenconfig && \
+    chmod 777 /tmp/.zenconfig
+
 RUN poetry config virtualenvs.create false && \
     poetry install --no-root && \
     poetry show
@@ -47,6 +70,7 @@ ENV PYTHONUNBUFFERED=1
 ENV ZENML_LOGGING_COLORS_DISABLED=False
 ENV ZENML_ENABLE_REPO_INIT_WARNINGS=False
 ENV ZENML_CONFIG_PATH=/tmp/.zenconfig
+ENV HOME=/tmp
 
 # Other environment variables
 ARG AWS_ACCESS_KEY_ID
