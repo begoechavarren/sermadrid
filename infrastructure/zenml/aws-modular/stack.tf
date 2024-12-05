@@ -61,7 +61,7 @@ resource "null_resource" "zenml_stack" {
           --flavor s3 \
           --path="s3://${var.bucket_name}"
         echo "Connecting S3 artifact store to AWS connector..."
-        zenml artifact-store connect s3_artifact_store --connector aws_connector
+        # zenml artifact-store connect s3_artifact_store --connector aws_connector
       else
         echo "S3 artifact store already exists, skipping registration..."
       fi
@@ -75,7 +75,7 @@ resource "null_resource" "zenml_stack" {
           --flavor aws \
           --uri="$ECR_URL"
         echo "Connecting ECR container registry to AWS connector..."
-        zenml container-registry connect ecr_registry --connector aws_connector
+        # zenml container-registry connect ecr_registry --connector aws_connector
       else
         echo "ECR container registry already exists, skipping registration..."
       fi
@@ -88,7 +88,7 @@ resource "null_resource" "zenml_stack" {
           --flavor kubernetes \
           --kubernetes_namespace=${local.eks.workloads_namespace}
         echo "Connecting Kubernetes orchestrator to AWS connector..."
-        zenml orchestrator connect k8s_orchestrator --connector aws_connector
+        # zenml orchestrator connect k8s_orchestrator --connector aws_connector
       else
         echo "Kubernetes orchestrator already exists, skipping registration..."
       fi
@@ -104,7 +104,7 @@ resource "null_resource" "zenml_stack" {
           --tracking_username=${var.mlflow-username} \
           --tracking_password=${var.mlflow-password}
         echo "Connecting MLflow experiment tracker to AWS connector..."
-        zenml experiment-tracker connect mlflow_tracker --connector aws_connector
+        # zenml experiment-tracker connect mlflow_tracker --connector aws_connector
       else
         echo "MLflow experiment tracker already exists, skipping registration..."
       fi
