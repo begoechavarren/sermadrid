@@ -9,12 +9,22 @@ set -e
 
 echo "Starting container initialization..."
 
-# Configure AWS CLI with provided credentials
-echo "Configuring AWS CLI..."
-aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID"
-aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY"
-aws configure set region "$AWS_REGION"
-echo "AWS CLI configured successfully."
+# Set up AWS configuration to use /tmp
+export AWS_CONFIG_FILE=/tmp/.aws/config
+export AWS_SHARED_CREDENTIALS_FILE=/tmp/.aws/credentials
+export HOME=/tmp
+
+# Create necessary directories
+mkdir -p /tmp/.aws
+mkdir -p /tmp/.zenconfig
+
+# Configure AWS CLI if needed
+if [ ! -f "$AWS_CONFIG_FILE" ]; then
+    aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID" --profile default --config-file $AWS_CONFIG_FILE
+    aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY" --profile default --config-file $AWS_CONFIG_FILE
+    aws configure set region "$AWS_REGION" --profile default --config-file $AWS_CONFIG_FILE
+    echo "AWS CLI configured successfully."
+fi
 
 # Redirect all ZenML connection output to stdout
 echo "Connecting to ZenML server at: ${ZENML_SERVER_URL}"
@@ -31,7 +41,6 @@ zenml artifact-store connect s3_artifact_store --connector kube-auto
 zenml container-registry connect ecr_registry --connector kube-auto
 zenml orchestrator connect k8s_orchestrator --connector kube-auto
 zenml experiment-tracker connect mlflow_tracker --connector kube-auto
-
 
 # Execute the Lambda handler
 exec python3 -m awslambdaric lambda_handler.lambda_handler
@@ -52,6 +61,10 @@ COPY zenml/steps ./steps
 COPY zenml/utils ./utils
 COPY zenml/lambda_handler.py ./
 
+# Create necessary directories with proper permissions
+RUN mkdir -p /tmp/.aws /tmp/.zenconfig && \
+    chmod 777 /tmp/.aws /tmp/.zenconfig
+
 RUN poetry config virtualenvs.create false && \
     poetry install --no-root && \
     poetry show
@@ -60,6 +73,7 @@ ENV PYTHONUNBUFFERED=1
 ENV ZENML_LOGGING_COLORS_DISABLED=False
 ENV ZENML_ENABLE_REPO_INIT_WARNINGS=False
 ENV ZENML_CONFIG_PATH=/tmp/.zenconfig
+ENV HOME=/tmp
 
 # Other environment variables
 ARG AWS_ACCESS_KEY_ID
