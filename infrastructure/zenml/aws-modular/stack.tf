@@ -24,14 +24,14 @@ resource "null_resource" "zenml_stack" {
       SA_EXISTS=$(kubectl -n $ZENML_NS exec deploy/$ZENML_DEPLOY -- zenml service-account list | grep -q "^.*${local.zenml.service_account_name}.*" && echo "yes" || echo "no")
       
       if [ "$SA_EXISTS" = "yes" ]; then
-        echo "Service account ${local.zenml.service_account_name} exists, deleting it..."
-        kubectl -n $ZENML_NS exec deploy/$ZENML_DEPLOY -- zenml service-account api-key ${local.zenml.service_account_name} rotate default
-        echo "Service account deleted successfully"
+        echo "Service account ${local.zenml.service_account_name} exists, rotating it..."
+        RAW_OUTPUT=$(kubectl -n $ZENML_NS exec deploy/$ZENML_DEPLOY -- zenml service-account api-key ${local.zenml.service_account_name} rotate default | tr -d '\n' | sed 's/\x1b\[[0-9;]*m//g')
+      else
+        echo "Creating new ZenML service account and retrieving API key..."
+        RAW_OUTPUT=$(kubectl -n $ZENML_NS exec deploy/$ZENML_DEPLOY -- zenml service-account create ${local.zenml.service_account_name} | tr -d '\n' | sed 's/\x1b\[[0-9;]*m//g')
       fi
 
-      echo "Creating new ZenML service account and retrieving API key..."
-      RAW_OUTPUT=$(kubectl -n $ZENML_NS exec deploy/$ZENML_DEPLOY -- zenml service-account create ${local.zenml.service_account_name} | tr -d '\n' | sed 's/\x1b\[[0-9;]*m//g')
-      echo "Raw Output from ZenML service account creation:"
+      echo "Raw Output from new ZenML service account api key:"
       echo "$RAW_OUTPUT"
       ZENML_API_KEY=$(echo "$RAW_OUTPUT" | grep -o "'ZENKEY_[^']*'" | tr -d "'")
 
