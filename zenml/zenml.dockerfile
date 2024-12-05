@@ -9,24 +9,21 @@ set -e
 
 echo "Starting container initialization..."
 
-# Set up AWS configuration to use /tmp
-export AWS_CONFIG_FILE=/tmp/.aws/config
-export AWS_SHARED_CREDENTIALS_FILE=/tmp/.aws/credentials
-export HOME=/tmp
+# Export AWS credentials as environment variables
+# These will be automatically picked up by AWS SDK and tools
+export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+export AWS_DEFAULT_REGION=${AWS_REGION}
+export AWS_REGION=${AWS_REGION}
 
-# Create necessary directories
-mkdir -p /tmp/.aws
+# Set temp directory for any ZenML operations
+export HOME=/tmp
+export ZENML_CONFIG_PATH=/tmp/.zenconfig
 mkdir -p /tmp/.zenconfig
 
-# Configure AWS CLI if needed
-if [ ! -f "$AWS_CONFIG_FILE" ]; then
-    aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID" --profile default --config-file $AWS_CONFIG_FILE
-    aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY" --profile default --config-file $AWS_CONFIG_FILE
-    aws configure set region "$AWS_REGION" --profile default --config-file $AWS_CONFIG_FILE
-    echo "AWS CLI configured successfully."
-fi
+echo "AWS credentials configured via environment variables"
 
-# Redirect all ZenML connection output to stdout
+# ZenML setup
 echo "Connecting to ZenML server at: ${ZENML_SERVER_URL}"
 zenml connect --url="${ZENML_SERVER_URL}" --api-key="${ZENML_API_KEY}"
 echo "Listing ZenML stacks:"
@@ -62,8 +59,8 @@ COPY zenml/utils ./utils
 COPY zenml/lambda_handler.py ./
 
 # Create necessary directories with proper permissions
-RUN mkdir -p /tmp/.aws /tmp/.zenconfig && \
-    chmod 777 /tmp/.aws /tmp/.zenconfig
+RUN mkdir -p /tmp/.zenconfig && \
+    chmod 777 /tmp/.zenconfig
 
 RUN poetry config virtualenvs.create false && \
     poetry install --no-root && \
