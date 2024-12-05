@@ -25,7 +25,7 @@ resource "null_resource" "zenml_stack" {
       
       if [ "$SA_EXISTS" = "yes" ]; then
         echo "Service account ${local.zenml.service_account_name} exists, deleting it..."
-        kubectl -n $ZENML_NS exec deploy/$ZENML_DEPLOY -- zenml service-account delete ${local.zenml.service_account_name}
+        kubectl -n $ZENML_NS exec deploy/$ZENML_DEPLOY -- zenml service-account api-key ${local.zenml.service_account_name} rotate default
         echo "Service account deleted successfully"
       fi
 

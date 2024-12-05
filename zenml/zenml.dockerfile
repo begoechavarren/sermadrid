@@ -28,7 +28,6 @@ zenml stack list
 echo "Register ZenML service connector"
 zenml service-connector register kube-auto --type kubernetes --auto-configure
 
-
 # Execute the Lambda handler
 exec python3 -m awslambdaric lambda_handler.lambda_handler
 EOF
