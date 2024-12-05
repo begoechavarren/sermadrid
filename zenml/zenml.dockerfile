@@ -27,6 +27,11 @@ echo "Final stack list:"
 zenml stack list
 echo "Register ZenML service connector"
 zenml service-connector register kube-auto --type kubernetes --auto-configure
+zenml artifact-store connect s3_artifact_store --connector kube-auto
+zenml container-registry connect ecr_registry --connector kube-auto
+zenml orchestrator connect k8s_orchestrator --connector kube-auto
+zenml experiment-tracker connect mlflow_tracker --connector kube-auto
+
 
 # Execute the Lambda handler
 exec python3 -m awslambdaric lambda_handler.lambda_handler
